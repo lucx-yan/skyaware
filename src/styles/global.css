@@ -1,0 +1,228 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Reset da página */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+img, svg {
+    display: block;
+    max-width: 100%;
+}
+
+/* Variáveis do CSS */
+:root {
+    /* Paleta de Cores */
+    --c-bg: #03050c;
+    --c-cyan: #4f9eff;
+    --c-cyan-dark: #2d7dd2;
+    --c-orange: #f77f00;
+    --c-green: #3dffa0;
+    --c-yellow: #ffd166;
+    --c-red: #ff5050;
+    --c-white: #e8f4fd;
+    --c-muted: rgba(232, 244, 253, 0.35);
+    --c-border: rgba(79, 158, 255, 0.12);
+    --c-border-hover: rgba(79, 158, 255, 0.35);
+    --c-panel: rgba(3, 5, 12, 0.85);
+
+    /* Tipografia */
+    --font-display: 'Cormorant Garamond', serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'Space Mono', monospace;    
+}
+
+body {
+    background-color: var(--c-bg);
+    color: var(--c-white);
+    font-family: var(--font-body);
+    font-weight: 400;
+    line-height: 1.6;
+    overflow-x: hidden;   
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--c-bg);
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--c-cyan-dark);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--c-cyan);
+}
+
+/* Botões */
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.85rem 2rem;
+    background: var(--c-cyan);
+    color: var(--c-bg);
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.btn-primary:hover {
+    background: #76b5ff;
+    transform: translateY(-1px);
+}
+
+.btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.85rem 2rem;
+    background: transparent;
+    color: var(--c-muted);
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border: 0.5px solid rgba(232, 244, 253, 0.2);
+    border-radius: 2px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.btn-ghost:hover {
+    border-color: rgba(232, 244, 253, 0.5);
+    color: var(--c-white);
+}
+
+/* Utilitários de layout */
+.section-kicker {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--c-cyan);
+    opacity: 0.7;
+}
+
+.section-title {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 5vw, 4.5rem);
+    font-weight: 300;
+    line-height: 1.05;
+    color: var(--c-white);
+}
+
+.section-title em {
+    font-style: italic;
+    color: var(--c-muted);
+}
+
+.divider-line {
+    width: 52px;
+    height: 1px;
+    background: linear-gradient(90deg, var(--c-cyan), transparent);
+}
+
+.panel {
+    background: var(--c-panel);
+    border: 0.5px solid var(--c-border);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+/* Link Navegação */
+
+.nav-link {
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--c-muted);
+    text-decoration: none;
+    transition: color 0.2s ease;
+    position: relative;
+    padding-bottom: 2px;
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background: var(--c-cyan);
+    transition: width 0.3s ease;
+}
+
+.nav-link:hover, .nav-link.active {
+    color: var(--c-white);
+}
+
+.nav-link:hover::after, .nav-link.active::after {
+    width: 100%;
+}
+
+/* Animações */
+
+/* Efeito de piscar */
+@keyframes blink {
+    0%, 100% {opacity: 1;}
+    50% {opacity: 0.15;}
+}
+
+/* Efeito de aparecer suavemente */
+@keyframes fadeInUp {
+    from {opacity: 0; transform: translateY(28px);}
+    to {opacity: 1; transform: translateY(0);}
+}
+
+/* Efeito de flutuar */
+@keyframes float {
+    0%, 100% {transform: translateY(0);}
+    50% {transform: translateY(-12px);}
+}
+
+.animate-fade-in-up {
+    animation: fadeInUp 0.8s ease forwards;
+}
+
+.animate-float {
+    animation: float 6s ease-in-out infinite;
+}
+
+.delay-100 {animation-delay: 0.1s;}
+.delay-200 {animation-delay: 0.2s;}
+.delay-300 {animation-delay: 0.3s;}
+.delay-400 {animation-delay: 0.4s;}
+.delay-500 {animation-delay: 0.5s;}
+
+/* Responsividade base */
+
+@media (max-width: 768px) {
+    .section-title {
+        font-size: clamp(1.8rem, 7vw, 2.5rem);
+    }
+}
