@@ -1,5 +1,4 @@
 import { NavLink } from "react-router-dom";
-import logo from '../assets/darksky-logo.png';
 
 const FOOTER_LINKS = [
     { to: '/', label: 'Home' },
@@ -12,9 +11,9 @@ const FOOTER_LINKS = [
 ]
 
 const DATA_SOURCES = [
-    { label: "NASA VIIRS", href: "https://www.nasa.gov/mission_pages/NPP/main/index.html" },
-    { label: "NASA MODIS", href: "https://modis.gsfc.nasa.gov/" },
     { label: "CelesTrak TLE", href: "https://celestrak.org/" },
+    { label: "Open-Meteo API", href: "https://open-meteo.com/" },
+    { label: "VIIRS / NASA", href: "https://www.nasa.gov/mission_pages/NPP/main/index.html" },
     { label: "Space-Track.org", href: "https://www.space-track.org/" },
     { label: "ESA", href: "https://www.esa.int/" },
 ]
@@ -36,12 +35,26 @@ export default function Footer() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
                     {/* Coluna 1 - Logo e descrição */}
                     <div className="flex flex-col gap-4">
-                        <NavLink to="/" className="inline-flex">
-                            <img
-                                src={logo}
-                                alt="DarkSky - Plataforma de Proteção do Céu Noturno"
-                                style={{ height: "28px", width: "auto" }}
-                            />
+                        <NavLink to="/" className="inline-flex items-center gap-3">
+                            <svg width="22" height="22" viewBox="0 0 26 26" fill="none" aria-hidden="true">
+                                <circle cx="13" cy="13" r="3" fill="var(--c-cyan)" />
+                                <ellipse cx="13" cy="13" rx="11" ry="5"
+                                    stroke="var(--c-cyan)" strokeWidth="0.8"
+                                    fill="none" strokeDasharray="2.5 1.5" />
+                                <ellipse cx="13" cy="13" rx="5" ry="11"
+                                    stroke="var(--c-cyan)" strokeWidth="0.7" opacity="0.4"
+                                    fill="none" strokeDasharray="2 2" />
+                                <circle cx="22" cy="7.5" r="1.5" fill="var(--c-orange)" />
+                            </svg>
+                            <span style={{
+                                fontFamily: "var(--font-mono)",
+                                fontSize: "0.8rem",
+                                fontWeight: "700",
+                                letterSpacing: "0.18em",
+                                color: "var(--c-cyan)",
+                            }}>
+                                DARK<span style={{color: "var(--c-white)"}}>SKY</span>
+                            </span>
                         </NavLink>
                         <p style={{
                             fontFamily: "var(--font-body)",

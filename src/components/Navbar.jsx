@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
-import logo from '../assets/darksky-logo.png';
 
 // Links de Navegação
 const NAV_LINKS = [
@@ -13,16 +12,24 @@ const NAV_LINKS = [
     {to: '/sobre', label: 'Sobre'},
 ]
 
-export default function Navbar() {
+// Configuração para cada perfil
+const PROFILE_CONFIG = {
+    amador: {label: "Amador", color: "var(--c-green)"},
+    fotografo: {label: "Fotógrafo", color: "var(--c-cyan)"},
+    profissional: {label: "Profissional", color: "var(--c-orange)"}
+}
+
+export default function Navbar({profile, onProfileChange}) {
     const [scrolled, setScrolled] = useState(false)
     const [menuOpen, setMenuOpen] = useState(false)
 
-    // Muda o fundo da navbar ao rolar a página
     useEffect(() => {
         const onScroll = () =>  setScrolled(window.scrollY > 40)
         window.addEventListener('scroll', onScroll, {passive: true})
         return () => window.removeEventListener('scroll', onScroll)
     }, [])
+
+    const currentProfile = PROFILE_CONFIG[profile]
 
     return (
         <header
@@ -43,14 +50,28 @@ export default function Navbar() {
                 {/* Logo */}
                 <NavLink
                     to='/'
-                    className="flex items-center flex-shrink-0"
+                    className="flex items-center gap-3 flex-shrink-0"
                     onClick={() => setMenuOpen(false)}
                 >
-                    <img
-                        src={logo}
-                        alt="DarkSky - Plataforma de Proteção do Céu Noturno"
-                        style={{height: "64px", width: "auto"}}
-                    />
+                    <svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true">
+                        <circle cx="13" cy="13" r="3" fill="var(--c-cyan)" />
+                        <ellipse cx="13" cy="13" rx="11" ry="5"
+                            stroke="var(--c-cyan)" strokeWidth="0.8"
+                            fill="none" strokeDasharray="2.5 1.5" />
+                        <ellipse cx="13" cy="13" rx="5" ry="11"
+                            stroke="var(--c-cyan)" strokeWidth="0.7" opacity="0.4"
+                            fill="none" strokeDasharray="2 2" />
+                        <circle cx="22" cy="7.5" r="1.5" fill="var(--c-orange)" />
+                    </svg>
+                    <span style={{
+                        fontFamily: "var(--font-mono)",
+                        fontSize: "0.875rem",
+                        fontWeight: "700",
+                        letterSpacing: "0.18em",
+                        color: "var(--c-cyan)",
+                    }}>
+                        DARK<span style={{color: "var(--c-white)"}}>SKY</span>
+                    </span>
                 </NavLink>
 
                 {/* Links Desktop */}
@@ -73,30 +94,64 @@ export default function Navbar() {
                     ))}
                 </nav>
 
-                {/* Indicador de status - desktop */}
-                <div
-                    className="hidden md:flex items-center gap-2 flex-shrink-0"
-                    style={{
-                        fontFamily: "var(--font-mono)",
-                        fontSize: "0.65rem",
-                        letterSpacing: "0.1em",
-                        color: "rgba(232, 244, 253, 0.25)",
-                    }}
-                >
-                    <span
-                        style={{
-                            width: 7,
-                            height: 7,
-                            borderRadius: "50%",
-                            background: "var(--c-green)",
-                            boxShadow: "0 0 6px var(--c-green)",
-                            display: "inline-block",
-                            animation: "blink 2s infinite",
-                        }}    
-                    />
-                    SISTEMA ATIVO
-                </div>
 
+
+                {/* Perfil e status */}
+                <div className="hidden md:flex items-center gap-4 flex-shrink-0">
+                    {profile && (
+                        <button
+                            onClick={onProfileChange}
+                            className="flex items-center gap-2 transition-opacity duration-200 hover:opacity-70"
+                            style={{
+                                background: "transparent",
+                                border: "0.5px solid rgba(232, 244, 253, 0.12)",
+                                borderRadius: "4px",
+                                padding: "0.3rem 0.8rem",
+                                cursor: "pointer",
+                            }}
+                        >
+                            <span style={{
+                                width: 6, 
+                                height: 6,
+                                borderRadius: "50%",
+                                background: currentProfile.color,
+                                boxShadow: `0 0 5px ${currentProfile.color}`,
+                                display: "inline-block",
+                                flexShrink: 0,
+                            }} />
+                            <span style={{
+                                fontFamily: "var(--font-mono)",
+                                fontSize: "0.62rem",
+                                letterSpacing: "0.1em",
+                                color: "rgba(232, 244, 253, 0.45)"
+                            }}>
+                                {currentProfile.label}
+                            </span>
+                        </button>
+                    )}
+
+                    <div className="flex items-center gap-2"
+                        style={{
+                            fontFamily: "var(--font-mono)",
+                            fontSize: "0.65rem",
+                            letterSpacing: "0.1em",
+                            color: "rgba(232, 244, 253, 0.25)",
+                        }}
+                    >
+                        <span
+                            style={{
+                                width: 7,
+                                height: 7,
+                                borderRadius: "50%",
+                                background: "var(--c-green)",
+                                boxShadow: "0 0 6px var(--c-green)",
+                                display: "inline-block",
+                                animation: "blink 2s infinite",
+                            }}    
+                        />
+                        SISTEMA ATIVO
+                    </div>
+                </div>
                 {/* Botão hambúguer para mobile */}
                 <button
                     className="md:hidden flex flex-col justify-center gap-1.5 p-2"
@@ -150,6 +205,26 @@ export default function Navbar() {
                             {link.label}
                         </NavLink>
                     ))}
+                    {/* Trocar perfil no mobile */}
+                    {profile && (
+                        <button
+                            onClick={() => {setMenuOpen(false); onProfileChange();}}
+                            style={{
+                                background: "transparent",
+                                border: "0.5px solid rgba(232, 244, 253, 0.12)",
+                                borderRadius: "4px",
+                                padding: "0.5rem 1rem",
+                                cursor: "pointer",
+                                fontFamily: "var(--font-mono)",
+                                fontSize: "0.65em",
+                                letterSpacing: "0.1em",
+                                color: "rgba(232, 244, 253, 0.4)",
+                                textAlign: "left",
+                            }}
+                        >
+                            Trocar perfil - {currentProfile?.label}
+                        </button>
+                    )}
                 </nav>
             </div>
         </header>
