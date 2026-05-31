@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom"
-import { ChevronRight, MapPin, RefreshCw } from "lucide-react"
+import { ChevronRight, MapPin, RefreshCw, Telescope, Camera, FlaskConical, Icon, Columns } from "lucide-react"
 import data from "../data/satellites.json"
 
 // Hero
@@ -345,10 +345,193 @@ function Hero({ perfil }) {
     )
 }
 
+// Estatísticas
+function StatsBar() {
+    const {meta} = data
+    const stats = [
+        {value: meta.starlinkActive.toLocaleString(), label: "Starlink em órbita"},
+        {value: `${meta.affectedImages}%`, label: "Imagens científicas afetadas"},
+        {value: 3, label: "Satélites NASA integrados"},
+        {value: "7 dias", label: "Previsão em tempo real"},
+    ]
+    return (
+        <div className="relative z-10"
+            style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(4, 1fr)",
+                borderTop: "0.5px solid rgba(232, 244, 253, 0.05)",
+                borderBottom: "0.5px solid rgba(232, 244, 253, 0.05)",
+            }}
+        >
+            {stats.map((stat, i) => (
+                <div key={i}
+                    style={{
+                        padding: "2rem 3rem",
+                        textAlign: "center",
+                        borderRight: i < stats.length - 1
+                            ? "0.5px solid rgba(232, 244, 253, 0.05)"
+                            : "none",
+                    }}
+                >
+                    <p style={{
+                        fontFamily: "var(--font-display)",
+                        fontSize: "2.6rem",
+                        fontWeight: 300,
+                        lineHeight: 1,
+                        color: "var(--c-white)",
+                        marginBottom: "0.7rem",
+                    }}>
+                        {stat.value}
+                    </p>
+                    <p style={{
+                        fontFamily: "var(--font-mono)",
+                        fontSize: "0.75rem",
+                        letterSpacing: "0.12em",
+                        textTransform: "uppercase",
+                        color: "var(--c-muted)",
+                    }}>
+                        {stat.label}
+                    </p>
+                </div>
+            ))}
+        </div>
+    )
+}
+
+// Sobre
+function Sobre() {
+    const perfil = [
+        {
+            icon: Telescope,
+            titulo: "Atrônomo Amador",
+            descricao: "Score geral, previsão semanal e dicas do que observar esta noite.",
+            cor: "var(--c-green)",
+        },
+        {
+            icon: Camera,
+            titulo: "Astrofotógrafo",
+            descricao: "Risco de rastros por tempo de exposição, seeing e melhor janela.",
+            cor: "var(--c-cyan)",
+        },
+        {
+            icon: FlaskConical,
+            titulo: "Astrônomo Profissional",
+            descricao: "Fórmula híbrida completa, dados brutos das APIs e simulação.",
+            cor: "var(--c-orange)",
+        },
+    ]
+    return (
+        <section className="relative z-10"
+            style={{
+                padding: "4rem 4rem",
+                borderBottom: "0.5px solid rgba(232, 244, 253, 0.04)",
+                display: "grid",
+                gridTemplateColumns: "1fr 1.3fr",
+                gap: "6rem",
+                alignItems: "start",
+            }}
+        >
+            {/* Coluna esquerda */}
+            <div>
+                <p className="section-kicker" 
+                    style={{
+                        fontSize: "0.9rem",
+                        marginBottom: "1rem",
+                    }}>
+                    ◈ O que é o DarkSky
+                </p>
+                <h2 style={{
+                    fontFamily: "var(--font-display)",
+                    fontSize: "clamp(2rem, 4vw, 3.2rem)",
+                    fontWeight: 300,
+                    lineHeight: 1.06,
+                    color: "var(--c-white)",
+                    marginBottom: "1.5rem",
+                }}>
+                    Dado orbital.<br/>
+                    <em style={{fontStyle: "italic", color: "var(--c-muted)"}}>
+                        Decisão humana.
+                    </em>
+                </h2>
+                {/* Cards */}
+                <div style={{display: "flex", flexDirection: "column", gap: "0.75rem"}}>
+                    {perfil.map(p => {
+                        const Icone = p.icon
+                        return (
+                            <div key={p.titulo}
+                                style={{
+                                    display: "flex",
+                                    alignItems: "flex-start",
+                                    gap: "0.75rem",
+                                    padding: "0.9rem 1rem",
+                                    background: "rgba(79, 158, 255, 0.03)",
+                                    border: "0.5px solid rgba(79, 158, 255, 0.08)",
+                                    borderRadius: "4px",
+                                }}
+                            >
+                                <Icone size={18} color={p.cor} strokeWidth={1.5}
+                                    style={{flexShrink: 0, marginTop: "2px"}}/>
+                                <div>
+                                    <p style={{
+                                        fontFamily: "var(--font-body)",
+                                        fontSize: "0.85rem",
+                                        fontWeight: 500,
+                                        color: "var(--c-white)",
+                                        marginBottom: "0.2rem",
+                                    }}>
+                                        {p.titulo}
+                                    </p>
+                                    <p style={{
+                                        fontFamily: "var(--font-body)",
+                                        fontSize: "0.78rem",
+                                        fontWeight: 300,
+                                        color: "var(--c-muted)",
+                                        lineHeight: 1.5,
+                                    }}>
+                                        {p.descricao}
+                                    </p>
+                                </div>
+                            </div>
+                        )
+                    })}
+                </div>
+            </div>
+
+            {/* Coluna direita */}
+            <div style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "1.1rem",
+                marginTop: "3.5rem",
+                marginBottom: "3.5rem",
+            }}>
+                {[
+                    {texto: "Desde 2019, empresas como SpaceX, Amazon e OneWeb lançaram milhares de satélites em órbita baixa. A Starlink já possui mais de <b>6.000 ativos</b>, com aprovação para chegar a 42.000. Cada satélite reflete luz solar e deixa rastros visíveis nas fotografias e observações.,"},
+                    {texto: "Observatórios como o <b>Vera C. Rubin</b> estimam que até <b>30% das imagens científicas</b> já são contaminadas. Para o astrônomo amador ou fotógrafo noturno, uma noite planejada com semanas de antecedência pode ser completamente arruinada."},
+                    {texto: "O DarkSky responde uma pergunta simples: <b>o céu está livre agora?</b> Cruzando dados orbitais reais da NASA e ESA com condições locais medidas pelo ESP32, entregamos o momento exato de olhar para cima."},
+                ].map((item, i) => (
+                    <p key={i}
+                        dangerouslySetInnerHTML={{__html: item.texto}}
+                        style={{
+                            fontFamily: "var(--font-body)",
+                            fontSize: "1.1rem",
+                            fontWeight: 300,
+                            lineHeight: 1.8,
+                            color: "rgba(232, 244, 253, 0.4)",
+                        }}
+                    />
+                ))}
+            </div>
+        </section>
+    )
+}
+
 export default function Home({ perfil }) {
     return (
         <div className="relative z-10">
             <Hero perfil={perfil} />
+            <StatsBar />
+            <Sobre />
         </div>
     )
 }
