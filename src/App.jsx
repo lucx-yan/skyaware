@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react"
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom"
+
 import StarfieldCanvas from "./components/StarfieldCanvas"
 import Navbar from "./components/Navbar"
 import Footer from "./components/Footer"
 import SeletorPerfil from "./components/SeletorPerfil"
+
+import Home from "./pages/Home"
 import Problema from "./pages/Problema"
 import Impacto from "./pages/Impacto"
 
@@ -57,6 +60,7 @@ function AppContent() {
             style={{paddingTop: "64px"}}
           >
             <Routes>
+              <Route path="/" element={<Home perfil = {perfil}/>}/>
               <Route path="/problema" element={<Problema />} />
               <Route path="/impacto" element={<Impacto />} />
             </Routes>

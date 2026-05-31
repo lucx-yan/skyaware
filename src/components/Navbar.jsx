@@ -70,7 +70,7 @@ export default function Navbar({profile, onProfileChange}) {
                         letterSpacing: "0.18em",
                         color: "var(--c-cyan)",
                     }}>
-                        DARK<span style={{color: "var(--c-white)"}}>SKY</span>
+                        SKY<span style={{color: "var(--c-white)"}}>AWARE</span>
                     </span>
                 </NavLink>
 
@@ -121,7 +121,7 @@ export default function Navbar({profile, onProfileChange}) {
                             }} />
                             <span style={{
                                 fontFamily: "var(--font-mono)",
-                                fontSize: "0.62rem",
+                                fontSize: "0.7rem",
                                 letterSpacing: "0.1em",
                                 color: "rgba(232, 244, 253, 0.45)"
                             }}>
@@ -135,7 +135,7 @@ export default function Navbar({profile, onProfileChange}) {
                             fontFamily: "var(--font-mono)",
                             fontSize: "0.65rem",
                             letterSpacing: "0.1em",
-                            color: "rgba(232, 244, 253, 0.25)",
+                            color: "rgba(232, 244, 253, 0.4)",
                         }}
                     >
                         <span

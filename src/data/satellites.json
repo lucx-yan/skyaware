@@ -1,0 +1,94 @@
+{
+    "satellites" : [
+        {
+            "id" : "STARLINK-3847",
+            "constellation" : "StarLink",
+            "altitude" : 542,
+            "velocity" : 7.6,
+            "magnitude" : 2.1,
+            "passesIn" : 4,
+            "aszimuth" : 218,
+            "elevation" : 67,
+            "danger" : true
+        },
+        {
+            "id" : "STARLINK-2201",
+            "constellation" : "StarLink",
+            "altitude" : 548,
+            "velocity" : 7.6,
+            "magnitude" : 3.4,
+            "passesIn" : 12,
+            "aszimuth" : 165,
+            "elevation" : 45,
+            "danger" : false
+        },
+        {
+            "id" : "ONEWEB-0312",
+            "constellation" : "OneWeb",
+            "altitude" : 1200,
+            "velocity" : 7.1,
+            "magnitude" : 4.2,
+            "passesIn" : 28,
+            "aszimuth" : 90,
+            "elevation" : 32,
+            "danger" : false
+        },
+        {
+            "id" : "NOAA-20",
+            "constellation" : "NOAA",
+            "altitude" : 824,
+            "velocity" : 7.3,
+            "magnitude" : 5.1,
+            "passesIn" : 41,
+            "aszimuth" : 310,
+            "elevation" : 78,
+            "danger" : false
+        },
+        {
+            "id" : "STARLINK-4102",
+            "constellation" : "StarLink",
+            "altitude" : 551,
+            "velocity" : 7.6,
+            "magnitude" : 2.8,
+            "passesIn" : 56,
+            "aszimuth" : 200,
+            "elevation" : 55,
+            "danger" : false
+        },
+        {
+            "id" : "KUIPER-0041",
+            "constellation" : "Kuiper",
+            "altitude" : 630,
+            "velocity" : 7.5,
+            "magnitude" : 3.9,
+            "passesIn" : 74,
+            "aszimuth" : 140,
+            "elevation" : 28,
+            "danger" : false
+        }
+    ],
+    "meta": {
+        "location" : "São Paulo, SP",
+        "latitude" : -23.5505,
+        "longitude" : -46.6333,
+        "updatedAt" : "2026-05-29T22:00:00Z",
+        "totalTracked" : 27842,
+        "starlinkActive" : 6241,
+        "affectedImages" : 30
+    },
+    "weekForecast": [
+        {"day": "Hoje", "score": 8.0, "clouds": 10},
+        {"day": "Amanhã", "score": 6.5, "clouds": 26},
+        {"day": "Ter", "score": 3.0, "clouds": 70},
+        {"day": "Qua", "score": 0.0, "clouds": 90},
+        {"day": "Qui", "score": 7.5, "clouds": 15},
+        {"day": "Sex", "score": 9.0, "clouds": 5},
+        {"day": "Sáb", "score": 5.0, "clouds": 45}
+    ],
+    "scoreFactors": {
+        "orbital": {"value": 0.82, "weight": 0.7, "label": "Orbital"},
+        "local": {"value": 0.75, "weight": 0.3, "label": "Local / ESP32"},
+        "matm": {"value": 0.9, "label": "M_atm - Atmosférico"},
+        "mlum": {"value": 0.63, "label": "M_lum - Luminoso"} 
+    }
+}
