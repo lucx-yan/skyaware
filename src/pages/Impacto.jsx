@@ -123,13 +123,13 @@ export default function Impacto() {
       <div className="mt-20">
         <div className="panel p-10 rounded-xl">
           <h2 className="text-3xl mb-8">
-            Por que o DarkSky é importante?
+            Por que o SkyAware é importante?
           </h2>
 
           <div className="grid md:grid-cols-2 gap-8">
             <div>
               <h3 className="text-xl mb-3">
-                Sem DarkSky
+                Sem SkyAware
               </h3>
 
               <p className="text-gray-400">
@@ -141,7 +141,7 @@ export default function Impacto() {
 
             <div>
               <h3 className="text-xl mb-3">
-                Com DarkSky
+                Com SkyAware
               </h3>
 
               <p className="text-gray-400">
@@ -160,7 +160,7 @@ export default function Impacto() {
         </h2>
 
         <p className="text-xl text-gray-300">
-          O DarkSky existe para garantir que a humanidade não perca de
+          O SkyAware existe para garantir que a humanidade não perca de
           vista as estrelas enquanto corre em direção a elas.
         </p>
       </div>
