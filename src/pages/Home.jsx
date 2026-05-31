@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom"
-import { ChevronRight, MapPin, RefreshCw, Telescope, Camera, FlaskConical, Icon, Columns } from "lucide-react"
+import { ChevronRight, MapPin, RefreshCw, Telescope, Camera, FlaskConical, Icon, Columns, Baseline } from "lucide-react"
 import data from "../data/satellites.json"
 
 // Hero
@@ -66,7 +66,7 @@ function Hero({ perfil }) {
                     }}
                 >
                     Satélites da NASA e da ESA monitoram a Terra continuamente.
-                    O DarkSky cruza esses dados com condições locais e responde uma pergunta simples: vale a pena observar agora?
+                    O SkyAware cruza esses dados com condições locais e responde uma pergunta simples: vale a pena observar agora?
                 </p>
 
                 <div className="flex flex-wrap gap-3 animate-fade-in-up delay-400">
@@ -438,7 +438,7 @@ function Sobre() {
                         fontSize: "0.9rem",
                         marginBottom: "1rem",
                     }}>
-                    ◈ O que é o DarkSky
+                    ◈ O que é o SkyAware
                 </p>
                 <h2 style={{
                     fontFamily: "var(--font-display)",
@@ -474,7 +474,7 @@ function Sobre() {
                                 <div>
                                     <p style={{
                                         fontFamily: "var(--font-body)",
-                                        fontSize: "0.85rem",
+                                        fontSize: "1rem",
                                         fontWeight: 500,
                                         color: "var(--c-white)",
                                         marginBottom: "0.2rem",
@@ -483,7 +483,7 @@ function Sobre() {
                                     </p>
                                     <p style={{
                                         fontFamily: "var(--font-body)",
-                                        fontSize: "0.78rem",
+                                        fontSize: "0.9rem",
                                         fontWeight: 300,
                                         color: "var(--c-muted)",
                                         lineHeight: 1.5,
@@ -502,13 +502,12 @@ function Sobre() {
                 display: "flex",
                 flexDirection: "column",
                 gap: "1.1rem",
-                marginTop: "3.5rem",
-                marginBottom: "3.5rem",
+                marginTop: "4.6rem",
             }}>
                 {[
                     {texto: "Desde 2019, empresas como SpaceX, Amazon e OneWeb lançaram milhares de satélites em órbita baixa. A Starlink já possui mais de <b>6.000 ativos</b>, com aprovação para chegar a 42.000. Cada satélite reflete luz solar e deixa rastros visíveis nas fotografias e observações.,"},
                     {texto: "Observatórios como o <b>Vera C. Rubin</b> estimam que até <b>30% das imagens científicas</b> já são contaminadas. Para o astrônomo amador ou fotógrafo noturno, uma noite planejada com semanas de antecedência pode ser completamente arruinada."},
-                    {texto: "O DarkSky responde uma pergunta simples: <b>o céu está livre agora?</b> Cruzando dados orbitais reais da NASA e ESA com condições locais medidas pelo ESP32, entregamos o momento exato de olhar para cima."},
+                    {texto: "O SkyAware responde uma pergunta simples: <b>o céu está livre agora?</b> Cruzando dados orbitais reais da NASA e ESA com condições locais medidas pelo ESP32, entregamos o momento exato de olhar para cima."},
                 ].map((item, i) => (
                     <p key={i}
                         dangerouslySetInnerHTML={{__html: item.texto}}
@@ -526,12 +525,174 @@ function Sobre() {
     )
 }
 
+// Características
+function Features() {
+    const features = [
+        {
+            num: "01",
+            titulo: "Sky Observation Score",
+            descricao: "Índice 0-10 calculado em tempo real combinando os dados orbitais, poluição luminosa e condições atmosféricas locais medidas pelo ESP32.",
+        },
+        {
+            num: "02",
+            titulo: "Previsão de 7 dias",
+            descricao: "Visualize as janelas ideais de observação e os períodos de alta interferência de satélites com antecedência de até 7 dias.",
+        },
+        {
+            num: "03",
+            titulo: "Mapa Estelar ao Vivo",
+            descricao: "Campo do céu com satélites em movimento real - veja exatamente quais Starlink cruzam seu campo de visão em tempo real.",
+        },
+        {
+            num: "04",
+            titulo: "Modo Fotogfrafia",
+            descricao: "Calcule rastros esperados por tempo de exposição e direção de câmera antes de sair para fotografar. Evite rastros nas longas exposições.",
+        },
+        {
+            num: "05",
+            titulo: "Alertas de Janela Ideal",
+            descricao: "Notificação no dashboard e sinal físico no ESP32 - LED verde, buzzer e display OLED - quando as condições superam seu limiar.",
+        },
+        {
+            num: "06",
+            titulo: "Histórico Orbital",
+            descricao: "Acompanhe como a qualidade do seu céu evoluiu nos últimos meses com seu crescimento das constelações de satélites.",
+        },
+    ]
+
+    return (
+        <section className="relative z-10">
+            <div style={{
+                    padding: "2.5rem 4rem 1.2rem",
+                    borderBottom: "0.5px solid rgba(232, 244, 253, 0.04)",
+                    display: "flex",
+                    alignItems: "baseline",
+                    gap: "1.5rem",
+                }}
+            >
+                <p className="section-kicker" style={{opacity: 1, fontSize: "0.85rem"}}>
+                    Funcionalidades
+                </p>
+                <p style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "0.85rem",
+                    letterSpacing: "0.06em",
+                    color: "var(--c-muted)",
+                }}>
+                    // o que o SkyAware entrega
+                </p>
+            </div>
+
+            <div style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(3, 1fr)",
+            }}>
+                {features.map((f, i) => (
+                    <div key={f.num}
+                        style={{
+                            padding: "2.2rem 2.5rem",
+                            borderRight: (i + 1) % 3 !== 0
+                                ? "0.5px solid rgba(232, 244, 253, 0.05)"
+                                : "none",
+                            borderBottom: i < 3
+                                ? "0.5px solid rgba(232, 244, 253, 0.05)"
+                                : "none",
+                            transition: "background 0.2s ease",  
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = "rgba(79, 158, 255, 0.03)"}
+                        onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                    >
+                        <p style={{
+                            fontFamily: "var(--font-mono)",
+                            fontSize: "0.8rem",
+                            letterSpacing: "0.1em",
+                            color: "rgba(79, 158, 255, 0.75)",
+                            marginBottom: "0.9rem",
+                        }}>
+                            {f.num} -
+                        </p>
+
+                        <p style={{
+                            fontFamily: "var(--font-display)",
+                            fontSize: "1.5rem",
+                            fontWeight: 400,
+                            color: "var(--c-white)",
+                            marginBottom: "0.5rem",
+                            lineHeight: 1.2,
+                        }}>
+                            {f.titulo}
+                        </p>
+
+                        <p style={{
+                            fontFamily: "var(--font-body)",
+                            fontSize: "0.9rem",
+                            fontWeight: 300,
+                            lineHeight: 1.65,
+                            color: "var(--c-muted)",
+                        }}>
+                            {f.descricao}
+                        </p>
+                    </div>
+                ))}
+            </div>
+        </section>
+    )
+}
+
+// CTA
+function CTA() {
+    return (
+        <section className="relative z-10"
+            style={{
+                padding: "5rem 4rem",
+                textAlign: "center",
+                borderTop: "0.5px solid rgba(232, 244, 253, 0.04)",
+            }}
+        >
+            <h2 style={{
+                fontFamily: "var(--font-display)",
+                fontSize: "clamp(2.5rem, 5vw, 4rem)",
+                fontWeight: 300,
+                lineHeight: 1.05,
+                color: "var(--c-white)",
+                marginBottom: "0.8rem",
+            }}>
+                Não perca<br/>
+                <em style={{fontStyle: "italic", color: "var(--c-muted)"}}>
+                    as estrelas.
+                </em>
+            </h2>
+
+            <p style={{
+                fontFamily: "var(--font-body)",
+                fontSize: "1.1rem",
+                fontWeight: 300,
+                color: "var(--c-muted)",
+                marginBottom: "2.2rem",
+            }}>
+                O SkyAware avisa quando o céu está ideal. Você só precisa olhar para cima.
+            </p>
+
+            <div className="flex gap-3 justify-center flex-wrap">
+                <Link to="/mapa-ceu" className="btn-primary">
+                    Ver o céu agora →
+                </Link>
+                <Link to="/como-funciona" className="btn-ghost">
+                    Ver funcionalidades
+                </Link>
+            </div>
+        </section>
+    )
+}
+
 export default function Home({ perfil }) {
     return (
         <div className="relative z-10">
             <Hero perfil={perfil} />
             <StatsBar />
             <Sobre />
+            <Features />
+            <CTA />
         </div>
     )
 }
