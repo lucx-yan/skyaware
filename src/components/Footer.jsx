@@ -25,7 +25,7 @@ export default function Footer() {
         <footer
             className="relative z-10 mt-auto"
             style={{
-                borderTop: "0.5px solid rgba(79, 158, 255, 0.1)",
+                borderTop: "0.5px solid rgba(79, 158, 255, 0.15)",
                 background: "rgba(3, 5, 12, 0.97)",
                 backdropFilter: "blur(12px)",
                 WebkitBackdropFilter: "blur(12px)",
@@ -48,17 +48,17 @@ export default function Footer() {
                             </svg>
                             <span style={{
                                 fontFamily: "var(--font-mono)",
-                                fontSize: "0.8rem",
+                                fontSize: "0.95rem",
                                 fontWeight: "700",
                                 letterSpacing: "0.18em",
                                 color: "var(--c-cyan)",
                             }}>
-                                DARK<span style={{color: "var(--c-white)"}}>SKY</span>
+                                SKY<span style={{color: "var(--c-white)"}}>AWARE</span>
                             </span>
                         </NavLink>
                         <p style={{
                             fontFamily: "var(--font-body)",
-                            fontSize: "0.85rem",
+                            fontSize: "0.9rem",
                             lineHeight: "1.7",
                             color: "var(--c-muted)",
                             maxWidth: "240px",
@@ -70,7 +70,7 @@ export default function Footer() {
 
                     {/* Coluna 2 - Navegação */}
                     <div className="flex flex-col gap-3">
-                        <p className="section-kicker" style={{ marginBottom: "0.5rem" }}>
+                        <p className="section-kicker" style={{ marginBottom: "0.5rem", fontSize: "0.95rem" }}>
                             Navegação
                         </p>
                         {FOOTER_LINKS.map(link => (
@@ -79,7 +79,7 @@ export default function Footer() {
                                 to={link.to}
                                 style={{
                                     fontFamily: "var(--font-body)",
-                                    fontSize: "0.85rem",
+                                    fontSize: "0.9rem",
                                     color: "var(--c-muted)",
                                     textDecoration: "none",
                                     transition: "color 0.2s ease",
@@ -94,7 +94,7 @@ export default function Footer() {
 
                     {/* Coluna 3 - Fontes de dados */}
                     <div className="flex flex-col gap-3">
-                        <p className="section-kicker" style={{ marginBottom: "0.5rem" }}>
+                        <p className="section-kicker" style={{ marginBottom: "0.5rem", fontSize: "0.95rem" }}>
                             Fontes de Dados
                         </p>
                         {DATA_SOURCES.map(source => ( <a
@@ -104,7 +104,7 @@ export default function Footer() {
                                 rel="noopener noreferrer"
                                 style={{
                                     fontFamily: "var(--font-body)",
-                                    fontSize: "0.85rem",
+                                    fontSize: "0.9rem",
                                     color: "var(--c-muted)",
                                     textDecoration: "none",
                                     transition: "color 0.2s ease",
@@ -120,7 +120,7 @@ export default function Footer() {
 
                 {/* Linha divisória */}
                 <div style={{
-                    borderTop: "0.5px solid rgba(79, 158, 255, 0.1)",
+                    borderTop: "0.5px solid rgba(79, 158, 255, 0.15)",
                     marginBottom: "1.5rem",
                 }} />
 
@@ -132,28 +132,8 @@ export default function Footer() {
                         letterSpacing: "0.06em",
                         color: "var(--c-muted)",
                     }}>
-                        © {year} DarkSky · FIAP — Engenharia de Software · Global Solution 2026
+                        © {year} SkyAware · FIAP — Engenharia de Software · Global Solution 2026
                     </p>
-
-                    <div
-                        className="flex items-center gap-2"
-                        style={{
-                            fontFamily: "var(--font-mono)",
-                            fontSize: "0.65rem",
-                            letterSpacing: "0.1em",
-                            color: "rgba(232, 244, 253, 0.25)",
-                        }}
-                    >
-                        <span style={{
-                            width: 6,
-                            height: 6,
-                            borderRadius: "50%",
-                            background: "var(--c-green)",
-                            boxShadow: "0 0 5px var(--c-green)",
-                            display: "inline-block",
-                        }} />
-                        SISTEMA OPERACIONAL
-                    </div>
                 </div>
             </div>
         </footer>
