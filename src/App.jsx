@@ -4,6 +4,8 @@ import StarfieldCanvas from "./components/StarfieldCanvas"
 import Navbar from "./components/Navbar"
 import Footer from "./components/Footer"
 import SeletorPerfil from "./components/SeletorPerfil"
+import Problema from "./pages/Problema"
+import Impacto from "./pages/Impacto"
 
 function ScrollToTop() {
   const {pathname} = useLocation()
@@ -55,7 +57,8 @@ function AppContent() {
             style={{paddingTop: "64px"}}
           >
             <Routes>
-              
+              <Route path="/problema" element={<Problema />} />
+              <Route path="/impacto" element={<Impacto />} />
             </Routes>
           </main>
           <Footer />
