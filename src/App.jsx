@@ -9,6 +9,7 @@ import SeletorPerfil from "./components/SeletorPerfil"
 import Home from "./pages/Home"
 import Problema from "./pages/Problema"
 import Impacto from "./pages/Impacto"
+import MapaCeu from "./pages/MapaCeu"
 
 function ScrollToTop() {
   const {pathname} = useLocation()
@@ -63,6 +64,7 @@ function AppContent() {
               <Route path="/" element={<Home perfil = {perfil}/>}/>
               <Route path="/problema" element={<Problema />} />
               <Route path="/impacto" element={<Impacto />} />
+              <Route path="/mapa-ceu" element={<MapaCeu perfil={perfil} />} />
             </Routes>
           </main>
           <Footer />
