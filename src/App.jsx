@@ -9,6 +9,7 @@ import SeletorPerfil from "./components/SeletorPerfil"
 import Home from "./pages/Home"
 import Problema from "./pages/Problema"
 import Impacto from "./pages/Impacto"
+import ComoFunciona from "./pages/ComoFunciona"
 import Sobre from "./pages/Sobre"
 
 function ScrollToTop() {
@@ -64,6 +65,7 @@ function AppContent() {
               <Route path="/" element={<Home perfil = {perfil}/>}/>
               <Route path="/problema" element={<Problema />} />
               <Route path="/impacto" element={<Impacto />} />
+              <Route path="/como-funciona" element={<ComoFunciona />} />
               <Route path="/sobre" element={<Sobre />} />
             </Routes>
           </main>
