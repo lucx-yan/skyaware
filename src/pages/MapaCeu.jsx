@@ -191,7 +191,7 @@ export default function MapaCeu({perfil}) {
     )
 }
 
-function SidebarConteudo({score, status, scoreFactors, satsVisiveis, expSeg, setExpSeg, azimuth, setAzimuth, rastrosEsperados}) {
+function SidebarConteudo({perfil, score, status, scoreFactors, satsVisiveis, expSeg, setExpSeg, azimuth, setAzimuth, rastrosEsperados}) {
     return (
         <div style={{
             display: "flex",
@@ -287,6 +287,94 @@ function SidebarConteudo({score, status, scoreFactors, satsVisiveis, expSeg, set
                     ))}
                 </div>
             </div>
+            
+            {/* Modo Fotografia - Fotógrafo */}
+            {perfil === "fotografo" && (
+                <div style={{padding: "1.2rem 1.5rem", borderBottom: "0.5px solid rgba(79, 158, 255, 0.08)"}}>
+                    <div className='flex items-center gap-2' style={{marginBottom: "0.5rem"}}>
+                        <Camera size={14.5} style={{color: "var(--c-cyan)"}}/>
+                        <p style={{
+                            fontFamily: "var(--font-mono)", 
+                            fontSize: "0.75rem",
+                            letterSpacing: "0.14em",
+                            textTransform: "uppercase",
+                            color: "var(--c-cyan)",
+                            opacity: 0.8,
+                        }}>
+                            Modo Fotografia
+                        </p>
+                    </div>
+                    <div style={{display: "flex", gap: "0.5rem", marginBottom: "0.6rem"}}>
+                        <div style={{flex: 1}}>
+                            <p style={{
+                                fontFamily: "var(--font-mono)", 
+                                fontSize: "0.7rem",
+                                color: "rgba(232, 244, 253, 0.25)",
+                                marginBottom: "4px",
+                            }}>
+                                Exposição (s)
+                            </p>
+                            <input type='number' value={expSeg}
+                                onChange={e => setExpSeg(Number(e.target.value))}
+                                style={{
+                                    width: "100%",
+                                    background: "rgba(232, 244, 253, 0.04)",
+                                    border: "0.5px solid rgba(232, 244, 253, 0.1)",
+                                    borderRadius: "3px",
+                                    padding: "0.4rem 0.6rem",
+                                    fontFamily: "var(--font-mono)",
+                                    fontSize: "0.65rem",
+                                    color: "var(--c-white)",
+                                    outline: "none",
+                                }}
+                            />
+                        </div>
+                        <div style={{flex: 1}}>
+                            <p style={{
+                                fontFamily: "var(--font-mono)",
+                                fontSize: "0.7rem",
+                                color: "rgba(232, 244, 253, 0.25)",
+                                marginBottom: "4px",
+                            }}>
+                                Azimute (°)
+                            </p>
+                            <input type="number" value={azimuth}
+                                onChange={e => setAzimuth(Number(e.target.value))}
+                                style={{
+                                    width: "100%", 
+                                    background: "rgba(232,244,253,0.04)",
+                                    border: "0.5px solid rgba(232,244,253,0.1)", 
+                                    borderRadius: "3px",
+                                    padding: "0.4rem 0.6rem", 
+                                    fontFamily: "var(--font-mono)",
+                                    fontSize: "0.65rem", 
+                                    color: "var(--c-white)", 
+                                    outline: "none",
+                                }}
+                            />
+                        </div>
+                    </div>
+                    <div style={{
+                        padding: "0.5rem 0.7rem",
+                        background: rastrosEsperados > 0 ? "rgba(255, 184, 48, 0.06)" : "rgba(61,255,160,0.04)",
+                        border: `0.5px solid ${rastrosEsperados > 0 ? "rgba(255, 184, 48, 0.2)" : "rgba(61, 255, 160, 0.15)"}`,
+                        borderRadius: "3px",
+                    }}>
+                        <p style={{
+                            fontFamily: "var(--font-mono)", 
+                            fontSize: "0.68rem",
+                            color: rastrosEsperados > 0 ? "rgba(255,184,48,0.9)" : "var(--c-green)",
+                            letterSpacing: "0.04em",
+                        }}>
+                            {rastrosEsperados > 0
+                                ? `⚠ ${rastrosEsperados} rastro(s) esperado(s) nesta janela`
+                                : "✓ Sem rastros esperados nesta janela"}
+                        </p>
+                    </div>
+                </div>
+            )}
+
+            {/* Satélites */}
 
             <div style={{padding: "1.2rem 1.5rem", borderBottom: "0.5px solid rgba(79, 158, 255, 0.08)"}}>
                 <p style={{
@@ -324,7 +412,10 @@ function SidebarConteudo({score, status, scoreFactors, satsVisiveis, expSeg, set
                                     fontSize: "0.7rem",
                                     color: "rgba(232, 244, 253, 0.3)",
                                 }}>
-                                    Alt: {sat.altitude}km · {sat.velocity} km/s
+                                    {perfil === "profissional"
+                                        ? `Az: ${sat.azimuth}° · El: ${sat.elevation}° · ${sat.altitude}km`
+                                        : `Alt: ${sat.altitude}km · ${sat.velocity} km/s`
+                                    }
                                 </p>
                             </div>
                             <div style={{textAlign: "right"}}>
@@ -349,87 +440,93 @@ function SidebarConteudo({score, status, scoreFactors, satsVisiveis, expSeg, set
                 </div>
             </div>
 
-            <div style={{padding: "1.2rem 1.5rem", borderBottom: "0.5px solid rgba(79, 158, 255, 0.08)"}}>
-                <div className='flex items-center gap-2' style={{marginBottom: "0.8rem"}}>
-                    <Camera size={14.5} style={{color: "var(--c-muted)"}}/>
-                    <p style={{
-                        fontFamily: "var(--font-mono)", 
-                        fontSize: "0.75rem",
-                        letterSpacing: "0.14em",
-                        textTransform: "uppercase",
-                        color: "rgba(232, 244, 253, 0.22)",
-                    }}>
-                        Modo Fotografia
-                    </p>
-                </div>
-                <div style={{display: "flex", gap: "0.5rem", marginBottom: "0.6rem"}}>
-                    <div style={{flex: 1}}>
-                        <p style={{
-                            fontFamily: "var(--font-mono)", 
-                            fontSize: "0.7rem",
-                            color: "rgba(232, 244, 253, 0.25)",
-                            marginBottom: "4px",
-                        }}>
-                            Exposição (s)
-                        </p>
-                        <input type='number' value={expSeg}
-                            onChange={e => setExpSeg(Number(e.target.value))}
-                            style={{
-                                width: "100%",
-                                background: "rgba(232, 244, 253, 0.04)",
-                                border: "0.5px solid rgba(232, 244, 253, 0.1)",
-                                borderRadius: "3px",
-                                padding: "0.4rem 0.6rem",
-                                fontFamily: "var(--font-mono)",
-                                fontSize: "0.65rem",
-                                color: "var(--c-white)",
-                                outline: "none",
-                            }}
-                        />
-                    </div>
-                    <div style={{flex: 1}}>
+            {/* Modo Fotografia - outros perfis */}
+            {perfil !== "fotografo" && (
+                <div style={{
+                    padding: "1.2rem 1.5rem",
+                    borderBottom: "0.5px solid rgba(79, 158, 255, 0.08)"
+                }}>
+                    <div className='flex items-center gap-2' style={{marginBottom: "0.8rem"}}>
+                        <Camera size={14.5} style={{color: "var(--c-muted)"}}/>
                         <p style={{
                             fontFamily: "var(--font-mono)",
-                            fontSize: "0.7rem",
-                            color: "rgba(232, 244, 253, 0.25)",
-                            marginBottom: "4px",
+                            fontSize: "0.75rem",
+                            letterSpacing: "0.14em",
+                            textTransform: "uppercase",
+                            color: "rgba(232, 244, 253, 0.22)",
                         }}>
-                            Azimute (°)
+                            Modo Fotografia
                         </p>
-                        <input type="number" value={azimuth}
-                            onChange={e => setAzimuth(Number(e.target.value))}
-                            style={{
-                                width: "100%", 
-                                background: "rgba(232,244,253,0.04)",
-                                border: "0.5px solid rgba(232,244,253,0.1)", 
-                                borderRadius: "3px",
-                                padding: "0.4rem 0.6rem", 
+                    </div>
+                    <div style={{display: "flex", gap: "0.5rem", marginBottom: "0.6rem"}}>
+                        <div style={{flex: 1}}>
+                            <p style={{
+                                fontFamily: "var(--font-mono)", 
+                                fontSize: "0.7rem",
+                                color: "rgba(232, 244, 253, 0.25)",
+                                marginBottom: "4px",
+                            }}>
+                                Exposição (s)
+                            </p>
+                            <input type='number' value={expSeg}
+                                onChange={e => setExpSeg(Number(e.target.value))}
+                                style={{
+                                    width: "100%",
+                                    background: "rgba(232, 244, 253, 0.04)",
+                                    border: "0.5px solid rgba(232, 244, 253, 0.1)",
+                                    borderRadius: "3px",
+                                    padding: "0.4rem 0.6rem",
+                                    fontFamily: "var(--font-mono)",
+                                    fontSize: "0.65rem",
+                                    color: "var(--c-white)",
+                                    outline: "none",
+                                }}
+                            />
+                        </div>
+                        <div style={{flex: 1}}>
+                            <p style={{
                                 fontFamily: "var(--font-mono)",
-                                fontSize: "0.65rem", 
-                                color: "var(--c-white)", 
-                                outline: "none",
-                            }}
-                        />
+                                fontSize: "0.7rem",
+                                color: "rgba(232, 244, 253, 0.25)",
+                                marginBottom: "4px",
+                            }}>
+                                Azimute (°)
+                            </p>
+                            <input type="number" value={azimuth}
+                                onChange={e => setAzimuth(Number(e.target.value))}
+                                style={{
+                                    width: "100%", 
+                                    background: "rgba(232,244,253,0.04)",
+                                    border: "0.5px solid rgba(232,244,253,0.1)", 
+                                    borderRadius: "3px",
+                                    padding: "0.4rem 0.6rem", 
+                                    fontFamily: "var(--font-mono)",
+                                    fontSize: "0.65rem", 
+                                    color: "var(--c-white)", 
+                                    outline: "none",
+                                }}
+                            />
+                        </div>
+                    </div>
+                    <div style={{
+                        padding: "0.5rem 0.7rem",
+                        background: rastrosEsperados > 0 ? "rgba(255, 184, 48, 0.06)" : "rgba(61,255,160,0.04)",
+                        border: `0.5px solid ${rastrosEsperados > 0 ? "rgba(255, 184, 48, 0.2)" : "rgba(61, 255, 160, 0.15)"}`,
+                        borderRadius: "3px",
+                    }}>
+                        <p style={{
+                            fontFamily: "var(--font-mono)", 
+                            fontSize: "0.68rem",
+                            color: rastrosEsperados > 0 ? "rgba(255,184,48,0.9)" : "var(--c-green)",
+                            letterSpacing: "0.04em",
+                        }}>
+                            {rastrosEsperados > 0
+                                ? `⚠ ${rastrosEsperados} rastro(s) esperado(s) nesta janela`
+                                : "✓ Sem rastros esperados nesta janela"}
+                        </p>
                     </div>
                 </div>
-                <div style={{
-                    padding: "0.5rem 0.7rem",
-                    background: rastrosEsperados > 0 ? "rgba(255, 184, 48, 0.06)" : "rgba(61,255,160,0.04)",
-                    border: `0.5px solid ${rastrosEsperados > 0 ? "rgba(255, 184, 48, 0.2)" : "rgba(61, 255, 160, 0.15)"}`,
-                    borderRadius: "3px",
-                }}>
-                    <p style={{
-                        fontFamily: "var(--font-mono)", 
-                        fontSize: "0.68rem",
-                        color: rastrosEsperados > 0 ? "rgba(255,184,48,0.8)" : "var(--c-green)",
-                        letterSpacing: "0.04em",
-                    }}>
-                        {rastrosEsperados > 0
-                            ? `⚠ ${rastrosEsperados} rastro(s) esperado(s) nesta janela`
-                            : "✓ Sem rastros esperados nesta janela"}
-                    </p>
-                </div>
-            </div>
+            )}
 
             <div className='flex items-center justify-between' style={{padding: "1rem 1.5rem", marginTop: "auto"}}>
                 <p style={{
@@ -543,6 +640,7 @@ function LayoutMapa({perfil}) {
 
                 {/* Sidebar desktop */}
                 <SidebarConteudo
+                    perfil={perfil}
                     score={score}
                     status={status}
                     scoreFactors={scoreFactors}
@@ -698,7 +796,51 @@ function LayoutMapa({perfil}) {
                         ))}
                     </div>
                 </div>
-
+                
+                {/* Modo Fotografia - Fotógrafo */}
+                {perfil === "fotografo" && (
+                    <div style={{padding: "1.2rem 1.5rem", borderBottom: "0.5px solid rgba(79,158,255,0.08)"}}>
+                        <div className='flex items-center gap-2' style={{marginBottom: "0.5rem"}}>
+                            <Camera size={14} style={{color: "var(--c-cyan)"}}/>
+                            <p style={{
+                                fontFamily: "var(--font-mono)",
+                                fontSize: "0.65rem",
+                                letterSpacing: "0.14em",
+                                textTransform: "uppercase",
+                                color: "var(--c-cyan)",
+                                opacity: 0.8,
+                            }}>
+                                Modo Fotografia
+                            </p>
+                        </div>
+                        <div style={{display: "flex", gap: "0.5rem", marginBottom: "0.6rem"}}>
+                            <div style={{flex: 1}}>
+                                <p style={{fontFamily: "var(--font-mono)", fontSize: "0.62rem", color: "rgba(232,244,253,0.25)", marginBottom: "4px"}}>
+                                    Exposição (s)
+                                </p>
+                                <input type='number' value={expSeg}
+                                    onChange={e => setExpSeg(Number(e.target.value))}
+                                    style={{width: "100%", background: "rgba(232,244,253,0.04)", border: "0.5px solid rgba(232,244,253,0.1)", borderRadius: "3px", padding: "0.4rem 0.6rem", fontFamily: "var(--font-mono)", fontSize: "0.72rem", color: "var(--c-white)", outline: "none"}}
+                                />
+                            </div>
+                            <div style={{flex: 1}}>
+                                <p style={{fontFamily: "var(--font-mono)", fontSize: "0.62rem", color: "rgba(232,244,253,0.25)", marginBottom: "4px"}}>
+                                    Azimute (°)
+                                </p>
+                                <input type='number' value={azimuth}
+                                    onChange={e => setAzimuth(Number(e.target.value))}
+                                    style={{width: "100%", background: "rgba(232,244,253,0.04)", border: "0.5px solid rgba(232,244,253,0.1)", borderRadius: "3px", padding: "0.4rem 0.6rem", fontFamily: "var(--font-mono)", fontSize: "0.72rem", color: "var(--c-white)", outline: "none"}}
+                                />
+                            </div>
+                        </div>
+                        <div style={{padding: "0.5rem 0.7rem", background: rastrosEsperados > 0 ? "rgba(255,184,48,0.06)" : "rgba(61,255,160,0.04)", border: `0.5px solid ${rastrosEsperados > 0 ? "rgba(255,184,48,0.2)" : "rgba(61,255,160,0.15)"}`, borderRadius: "3px"}}>
+                            <p style={{fontFamily: "var(--font-mono)", fontSize: "0.68rem", color: rastrosEsperados > 0 ? "rgba(255,184,48,0.9)" : "var(--c-green)"}}>
+                                {rastrosEsperados > 0 ? `⚠ ${rastrosEsperados} rastro(s) esperado(s) nesta janela` : "✓ Sem rastros esperados nesta janela"}
+                            </p>
+                        </div>
+                    </div>
+                )}
+                
                 {/* Satélites */}
                 <div style={{padding: "1.2rem 1.5rem", borderBottom: "0.5px solid rgba(79, 158, 255, 0.08)"}}>
                     <p style={{
@@ -733,7 +875,10 @@ function LayoutMapa({perfil}) {
                                         fontSize: "0.62rem",
                                         color: "rgba(232, 244, 253, 0.3)",
                                     }}>
-                                        Alt: {sat.altitude}km · {sat.velocity} km/s
+                                        {perfil === "profissional"
+                                            ? `Az: ${sat.azimuth}° · El: ${sat.elevation}° · ${sat.altitude}km`
+                                            : `Alt: ${sat.altitude}km · ${sat.velocity} km/s`
+                                        }
                                     </p>
                                 </div>
                                 <div style={{textAlign: "right"}}>
@@ -758,87 +903,89 @@ function LayoutMapa({perfil}) {
                     </div>
                 </div>
 
-                {/* Modo Fotografia */}
-                <div style={{padding: "1.2rem 1.5rem"}}>
-                    <div className='flex items-center gap-2' style={{marginBottom: "0.8rem"}}>
-                        <Camera size={14} style={{color: "var(--c-muted)"}}/>
-                        <p style={{
-                            fontFamily: "var(--font-mono)",
-                            fontSize: "0.65rem",
-                            letterSpacing: "0.14em",
-                            textTransform: "uppercase",
-                            color: "rgba(232, 244, 253, 0.22)",
-                        }}>
-                            Modo Fotografia
-                        </p>
-                    </div>
-                    <div style={{display: "flex", gap: "0.5rem", marginBottom: "0.6rem"}}>
-                        <div style={{flex: 1}}>
+                {/* Modo Fotografia - outros perfis*/}
+                {perfil !== "fotografo" && (
+                    <div style={{padding: "1.2rem 1.5rem"}}>
+                        <div className='flex items-center gap-2' style={{marginBottom: "0.8rem"}}>
+                            <Camera size={14} style={{color: "var(--c-muted)"}}/>
                             <p style={{
                                 fontFamily: "var(--font-mono)",
-                                fontSize: "0.62rem",
-                                color: "rgba(232, 244, 253, 0.25)",
-                                marginBottom: "4px",
+                                fontSize: "0.65rem",
+                                letterSpacing: "0.14em",
+                                textTransform: "uppercase",
+                                color: "rgba(232, 244, 253, 0.22)",
                             }}>
-                                Exposição (s)
+                                Modo Fotografia
                             </p>
-                            <input type='number' value={expSeg}
-                                onChange={e => setExpSeg(Number(e.target.value))}
-                                style={{
-                                    width: "100%",
-                                    background: "rgba(232, 244, 253, 0.04)",
-                                    border: "0.5px solid rgba(232, 244, 253, 0.1)",
-                                    borderRadius: "3px",
-                                    padding: "0.4rem 0.6rem",
-                                    fontFamily: "var(--font-mono)",
-                                    fontSize: "0.72rem",
-                                    color: "var(--c-white)",
-                                    outline: "none",
-                                }}
-                            />
                         </div>
-                        <div style={{flex: 1}}>
+                        <div style={{display: "flex", gap: "0.5rem", marginBottom: "0.6rem"}}>
+                            <div style={{flex: 1}}>
+                                <p style={{
+                                    fontFamily: "var(--font-mono)",
+                                    fontSize: "0.62rem",
+                                    color: "rgba(232, 244, 253, 0.25)",
+                                    marginBottom: "4px",
+                                }}>
+                                    Exposição (s)
+                                </p>
+                                <input type='number' value={expSeg}
+                                    onChange={e => setExpSeg(Number(e.target.value))}
+                                    style={{
+                                        width: "100%",
+                                        background: "rgba(232, 244, 253, 0.04)",
+                                        border: "0.5px solid rgba(232, 244, 253, 0.1)",
+                                        borderRadius: "3px",
+                                        padding: "0.4rem 0.6rem",
+                                        fontFamily: "var(--font-mono)",
+                                        fontSize: "0.72rem",
+                                        color: "var(--c-white)",
+                                        outline: "none",
+                                    }}
+                                />
+                            </div>
+                            <div style={{flex: 1}}>
+                                <p style={{
+                                    fontFamily: "var(--font-mono)",
+                                    fontSize: "0.62rem",
+                                    color: "rgba(232, 244, 253, 0.25)",
+                                    marginBottom: "4px",
+                                }}>
+                                    Azimute (°)
+                                </p>
+                                <input type='number' value={azimuth}
+                                    onChange={e => setAzimuth(Number(e.target.value))}
+                                    style={{
+                                        width: "100%",
+                                        background: "rgba(232, 244, 253, 0.04)",
+                                        border: "0.5px solid rgba(232, 244, 253, 0.1)",
+                                        borderRadius: "3px",
+                                        padding: "0.4rem 0.6rem",
+                                        fontFamily: "var(--font-mono)",
+                                        fontSize: "0.72rem",
+                                        color: "var(--c-white)",
+                                        outline: "none",
+                                    }}
+                                />
+                            </div>
+                        </div>
+                        <div style={{
+                            padding: "0.5rem 0.7rem",
+                            background: rastrosEsperados > 0 ? "rgba(255, 184, 48, 0.06)" : "rgba(61, 255, 160, 0.04)",
+                            border: `0.5px solid ${rastrosEsperados > 0 ? "rgba(255, 184, 48, 0.2)" : "rgba(61, 255, 160, 0.15)"}`,
+                            borderRadius: "3px",
+                        }}>
                             <p style={{
                                 fontFamily: "var(--font-mono)",
-                                fontSize: "0.62rem",
-                                color: "rgba(232, 244, 253, 0.25)",
-                                marginBottom: "4px",
+                                fontSize: "0.68rem",
+                                color: rastrosEsperados > 0 ? "rgba(255, 184, 48, 0.8)" : "var(--c-green)",
                             }}>
-                                Azimute (°)
+                                {rastrosEsperados > 0
+                                    ? `⚠ ${rastrosEsperados} rastro(s) esperado(s) nesta janela`
+                                    : "✓ Sem rastros esperados nesta janela"}
                             </p>
-                            <input type='number' value={azimuth}
-                                onChange={e => setAzimuth(Number(e.target.value))}
-                                style={{
-                                    width: "100%",
-                                    background: "rgba(232, 244, 253, 0.04)",
-                                    border: "0.5px solid rgba(232, 244, 253, 0.1)",
-                                    borderRadius: "3px",
-                                    padding: "0.4rem 0.6rem",
-                                    fontFamily: "var(--font-mono)",
-                                    fontSize: "0.72rem",
-                                    color: "var(--c-white)",
-                                    outline: "none",
-                                }}
-                            />
                         </div>
                     </div>
-                    <div style={{
-                        padding: "0.5rem 0.7rem",
-                        background: rastrosEsperados > 0 ? "rgba(255, 184, 48, 0.06)" : "rgba(61, 255, 160, 0.04)",
-                        border: `0.5px solid ${rastrosEsperados > 0 ? "rgba(255, 184, 48, 0.2)" : "rgba(61, 255, 160, 0.15)"}`,
-                        borderRadius: "3px",
-                    }}>
-                        <p style={{
-                            fontFamily: "var(--font-mono)",
-                            fontSize: "0.68rem",
-                            color: rastrosEsperados > 0 ? "rgba(255, 184, 48, 0.8)" : "var(--c-green)",
-                        }}>
-                            {rastrosEsperados > 0
-                                ? `⚠ ${rastrosEsperados} rastro(s) esperado(s) nesta janela`
-                                : "✓ Sem rastros esperados nesta janela"}
-                        </p>
-                    </div>
-                </div>
+                )}
             </div>
         </div>
     )
