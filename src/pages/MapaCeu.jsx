@@ -1,6 +1,187 @@
-import {useEffect, useState} from 'react'
+import {useEffect, useState, useRef} from 'react'
 import {MapPin, RefreshCw, Camera, Filter,} from 'lucide-react'
 import data from '../data/satellites.json'
+
+function MapaCanvas({filtro, satellites}) {
+    const canvasRef = useRef(null)
+
+    useEffect(() => {
+        const canvas = canvasRef.current
+        const ctx = canvas.getContext("2d")
+        let animId
+
+        function resize() {
+            canvas.width = canvas.parentElement.offsetWidth
+            canvas.height = canvas.parentElement.offsetHeight
+        }
+        resize()
+        window.addEventListener("resize", resize)
+
+        // Estrelas no fundo
+        const stars = Array.from({length: 280}, () => ({
+            x: Math.random(),
+            y: Math.random(),
+            r: Math.random() * 1.1 + 0.2,
+            a: Math.random(),
+            da: (Math.random() - 0.5) * 0.002,
+        }))
+
+        function getColor(constellation) {
+            const map = {
+                Starlink: "rgba(79, 158, 255,",
+                OneWeb: "rgba(247, 127, 0,",
+                NOAA: "rgba(61, 255, 160,",
+                Kuiper: "rgba(255, 209, 102,",
+            }
+            return map[constellation] || "rgba(232, 244, 253,"
+        }
+
+        // Satélites no fundo
+        const sats = satellites.map(sat => ({
+            ...sat,
+            x: sat.azimute / 360,
+            y: 1 - (sat.elevation / 90),
+            dx: (Math.random() - 0.5) * 0.0008,
+            dy: (Math.random() - 0.5) * 0.0003,
+            tl: 22 + Math.random() * 18,
+            ang: sat.azimute * (Math.PI / 180) - Math.PI / 2,
+        }))
+
+        function draw() {
+            const W = canvas.width
+            const H = canvas.height
+            ctx.clearRect(0, 0, W, H)
+            // Fundo
+            const grd = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, Math.max(W, H) * 0.6)
+            grd.addColorStop(0, "rgba(6, 12, 28, 0.95)")
+            grd.addColorStop(1, "rgba(3, 5, 12, 0.98)")
+            ctx.fillStyle = grd
+            ctx.fillRect(0, 0, W, H)
+            // Círculo
+            ctx.beginPath()
+            ctx.arc(W/2, H/2, Math.min(W, H) * 0.45, 0, Math.PI * 2)
+            ctx.strokeStyle = "rgba(232, 244, 253, 0.06)"
+            ctx.lineWidth = 1
+            ctx.stroke()
+            // Anéis
+            ;[0.25, 0.5, 0.75].forEach(r => {
+                ctx.beginPath()
+                ctx.arc(W/2, H/2, Math.min(W, H) * 0.45 * r, 0, Math.PI * 2)
+                ctx.strokeStyle = "rgba(232, 244, 253, 0.025)"
+                ctx.lineWidth = 0.5
+                ctx.stroke()
+            })
+            // Linhas Cardeais
+            ctx.strokeStyle = "rgba(232, 244, 253, 0.035)"
+            ctx.lineWidth = 0.5
+            ctx.beginPath()
+            ctx.moveTo(W/2, H * 0.04)
+            ctx.lineTo(W/2, H * 0.96)
+            ctx.stroke()
+            ctx.beginPath()
+            ctx.moveTo(W * 0.04, H/2)
+            ctx.lineTo(W * 0.96, H/2)
+            ctx.stroke()
+            // Estrelas
+            stars.forEach(s => {
+                s.a += s.da
+                if (s.a > 1) s.da = -Math.abs(s.da)
+                if (s.a < 0.04) s.da = Math.abs(s.da)
+                ctx.beginPath()
+                ctx.arc(s.x * W, s.y * H, s.r, 0, Math.PI * 2)
+                ctx.fillStyle = `rgba(215, 225, 255, ${s.a})`
+                ctx.fill()
+            })
+            // Satélites
+            sats.forEach(s => {
+                s.x += s.dx
+                s.y += s.dy
+                if (s.x > 1.05) s.x = -0.05
+                if (s.x < -0.05) s.x = 1.05
+                if (s.y > 1.05) s.y = -0.05
+                if (s.y < -0.05) s.y = 1.05
+
+                const px = s.x * W
+                const py = s.y * H
+                const tx = Math.cos(s.ang) * s.tl
+                const ty = Math.sin(s.ang) * s.tl
+                const baseColor = getColor(s.constellation)
+                
+                // Rastro
+                const trail = ctx.createLinearGradient(px - tx, py - ty, px, py)
+                trail.addColorStop(0, "transparent")
+                trail.addColorStop(1, baseColor + "0.3)")
+                ctx.beginPath()
+                ctx.moveTo(px - tx, py - ty)
+                ctx.lineTo(px, py)
+                ctx.strokeStyle = trail
+                ctx.lineWidth = 1.2
+                ctx.stroke()
+
+                // Marcação satélites perigosos
+                if (s.danger) {
+                    ctx.beginPath()
+                    ctx.arc(px, py, 6, 0, Math.PI * 2)
+                    ctx.strokeStyle = "rgba(255, 80, 80, 0.25)"
+                    ctx.lineWidth = 1
+                    ctx.stroke()
+                }
+
+                ctx.beginPath()
+                ctx.arc(px, py, s.danger ? 3 : 2, 0, Math.PI * 2)
+                ctx.fillStyle = s.danger 
+                    ? "rgba(255, 100, 80, 0.95)"
+                    : baseColor + "0.9)"
+                ctx.fill()
+
+                if (px > 30 && px < W - 80) {
+                    ctx.font = "7px Space Mono, monospace"
+                    ctx.fillStyle = s.danger
+                        ? "rgba(255, 100, 80, 0.6)"
+                        : "rgba(232, 244, 253, 0.3)"
+                    ctx.fillText(s.id, px + 6, py - 5)
+                }
+            })
+
+            const legendItems = [
+                {label: "Starlink", color: "rgba(79, 158, 255, 0.85)"},
+                {label: "OneWeb", color: "rgba(247, 127, 0, 0.85)"},
+                {label: "NOAA", color: "rgba(61, 255, 160, 0.8)"},
+                {label: "Kuiper", color: "rgba(255, 209, 102, 0.8)"},
+                {label: "⚠ < 10min", color: "rgba(255, 80, 80, 0.85)"},
+            ]
+            legendItems.forEach((item, i) => {
+                ctx.beginPath()
+                ctx.arc(14, H - 72 + i * 14, 3, 0, Math.PI * 2)
+                ctx.fillStyle = item.color
+                ctx.fill()
+                ctx.font = "8px Space Mono, monospace"
+                ctx.fillStyle = "rgba(232, 244, 253, 0.3)"
+                ctx.fillText(item.label, 24, H - 68 + i * 14)
+            })
+
+            animId = requestAnimationFrame(draw)
+        }
+
+        draw()
+
+        return () => {
+            window.removeEventListener("resize", resize)
+            cancelAnimationFrame(animId)
+        }
+    }, [satellites, filtro])
+
+    return (
+        <canvas ref={canvasRef}
+            style={{
+                display: "block",
+                width: "100%",
+                height: "100%",
+                cursor: "crosshair",
+            }}
+        />
+    )
+}
 
 export default function MapaCeu({perfil}) {
     return (
@@ -104,47 +285,8 @@ function LayoutMapa({perfil}) {
 
                 {/* Temporário!!! */}
                 {/* Canvas */}
-                <div style={{
-                        height: "calc(100% - 65px)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        background: "rgba(3, 5, 12, 0.6)",
-                        position: "relative",
-                    }}
-                >
-                    {[
-                        {label: "N", top: "12px", left: "50%", transform: "translateX(-50%)"},
-                        {label: "S", bottom: "12px", left: "50%", transform: "translateX(-50%)"},
-                        {label: "L", top: "50%", right: "16px", transform: "translateY(-50%)"},
-                        {label: "O", top: "50%", left: "16px", transform: "translateY(-50%)"},
-                    ].map(d => (
-                        <span key={d.label}
-                            style={{
-                                position: "absolute",
-                                fontFamily: "var(--font-mono)",
-                                fontSize: "0.8rem",
-                                letterSpacing: "0.1em",
-                                color: "var(--c-muted)",
-                                top: d.top,
-                                bottom: d.bottom,
-                                left: d.left,
-                                right: d.right,
-                                transform: d.transform,
-                            }}
-                        >
-                            {d.label}
-                        </span>
-                    ))}
-
-                    <p style={{
-                        fontFamily: "var(--font-mono)",
-                        fontSize: "0.8rem",
-                        color: "var(--c-muted)",
-                        letterSpacing: "0.08em",
-                    }}>
-                        Canvas carregando...
-                    </p>
+                <div style={{height: "calc(100% - 65px)", position: "relative"}}>
+                        <MapaCanvas filtro={filtro} satellites={satsVisiveis}/>
                 </div>
             </div>
 
@@ -265,7 +407,7 @@ function LayoutMapa({perfil}) {
                         gap: "0.5rem"
                     }}>
                         {satsVisiveis.map(sat => (
-                            <div key={sat.i}
+                            <div key={sat.id}
                                 className='flex items-center justify-between'
                                 style={{
                                     padding: "0.6rem 0.8rem",

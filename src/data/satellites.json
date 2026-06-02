@@ -18,7 +18,7 @@
             "velocity" : 7.6,
             "magnitude" : 3.4,
             "passesIn" : 12,
-            "aszimuth" : 165,
+            "azimuth" : 165,
             "elevation" : 45,
             "danger" : false
         },
