@@ -76,7 +76,7 @@ export default function Navbar({profile, onProfileChange}) {
 
                 {/* Links Desktop */}
                 <nav 
-                    className="hidden md:flex items-center"
+                    className="hidden lg:flex items-center"
                     style={{gap: "2.8rem"}}
                     aria-label="Navegação principal"
                 >
@@ -97,7 +97,7 @@ export default function Navbar({profile, onProfileChange}) {
 
 
                 {/* Perfil e status */}
-                <div className="hidden md:flex items-center gap-4 flex-shrink-0">
+                <div className="hidden lg:flex items-center gap-4 flex-shrink-0">
                     {profile && (
                         <button
                             onClick={onProfileChange}
@@ -154,7 +154,7 @@ export default function Navbar({profile, onProfileChange}) {
                 </div>
                 {/* Botão hambúguer para mobile */}
                 <button
-                    className="md:hidden flex flex-col justify-center gap-1.5 p-2"
+                    className="lg:hidden flex flex-col justify-center gap-1.5 p-2"
                     onClick={() => setMenuOpen(v => !v)}
                     aria-label="Abrir menu"
                     aria-expanded={menuOpen}
@@ -181,7 +181,7 @@ export default function Navbar({profile, onProfileChange}) {
 
             {/* Menu mobile */}
             <div
-                className="md:hidden overflow-hidden transition-all duration-300"
+                className="lg:hidden overflow-hidden transition-all duration-300"
                 style={{
                     maxHeight: menuOpen ? "400px" : "0",
                     borderTop: menuOpen ? "0.5px solid var(--c-border)" : "none",

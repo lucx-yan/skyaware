@@ -1,5 +1,5 @@
 import {useEffect, useState, useRef} from 'react'
-import {MapPin, RefreshCw, Camera, Filter,} from 'lucide-react'
+import {MapPin, RefreshCw, Camera, Filter} from 'lucide-react'
 import data from '../data/satellites.json'
 
 function MapaCanvas({filtro, satellites}) {
@@ -135,7 +135,7 @@ function MapaCanvas({filtro, satellites}) {
                 ctx.fill()
 
                 if (px > 30 && px < W - 80) {
-                    ctx.font = "7px Space Mono, monospace"
+                    ctx.font = "9px Space Mono, monospace"
                     ctx.fillStyle = s.danger
                         ? "rgba(255, 100, 80, 0.6)"
                         : "rgba(232, 244, 253, 0.3)"
@@ -155,7 +155,7 @@ function MapaCanvas({filtro, satellites}) {
                 ctx.arc(14, H - 72 + i * 14, 3, 0, Math.PI * 2)
                 ctx.fillStyle = item.color
                 ctx.fill()
-                ctx.font = "8px Space Mono, monospace"
+                ctx.font = "13px Space Mono, monospace"
                 ctx.fillStyle = "rgba(232, 244, 253, 0.3)"
                 ctx.fillText(item.label, 24, H - 68 + i * 14)
             })
@@ -191,10 +191,275 @@ export default function MapaCeu({perfil}) {
     )
 }
 
+function SidebarConteudo({score, status, scoreFactors, satsVisiveis, expSeg, setExpSeg, azimuth, setAzimuth, rastrosEsperados}) {
+    return (
+        <div style={{
+            display: "flex",
+            flexDirection: "column",
+            overflowY: "auto",
+            background: "rgba(3, 5, 12, 0.85)",
+        }}>
+            <div style={{padding: "1.4rem 1.5rem", borderBottom: "0.5px solid rgba(79, 158, 255, 0.08)"}}>
+                <p style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "0.8rem",
+                    letterSpacing: "0.16em",
+                    textTransform: "uppercase",
+                    color: "rgba(79, 158, 255, 0.6)",
+                    marginBottom: "0.4rem",
+                }}>
+                    Sky Observation Score
+                </p>
+                <p style={{
+                    fontFamily: "var(--font-display)",
+                    fontSize: "4rem",
+                    fontWeight: 300,
+                    lineHeight: 1,
+                    color: "var(--c-white)",
+                    marginBottom: "0.2rem",
+                    letterSpacing: "-0.02em",
+                }}>
+                    {score}
+                    <span style={{fontSize: "1.6rem", color: "rgba(232, 244, 253, 0.22)"}}>/10</span>
+                </p>
+                <div className='flex items-center gap-2' style={{marginBottom: "0.7rem", marginTop: "1rem"}}>
+                    <span style={{
+                        width: 5,
+                        height: 5,
+                        borderRadius: "50%",
+                        background: status.color,
+                        boxShadow: `0 0 5px ${status.color}`,
+                        display: "inline-block",
+                        flexShrink: 0,
+                    }}/>
+                    <span style={{
+                        fontFamily: "var(--font-body)",
+                        fontSize: "0.75rem",
+                        letterSpacing: "0.06em",
+                        textTransform: "uppercase",
+                        color: status.color,
+                    }}>
+                        {status.label}
+                    </span>
+                </div>
+                <div style={{display: "flex", flexDirection: "column", gap: "0.4rem"}}>
+                    {[
+                        {label: "Orbital", value: scoreFactors.orbital.value, color: "var(--c-cyan)"},
+                        {label: "M_atm", value: scoreFactors.matm.value, color: "var(--c-cyan)"},
+                        {label: "M_lum", value: scoreFactors.mlum.value, color: "var(--c-yellow)"},
+                        {label: "ESP32", value: scoreFactors.local.value, color: "var(--c-green)"},
+                    ].map(f => (
+                        <div key={f.label} className='flex items-center justify-between gap-2'>
+                            <p style={{
+                                fontFamily: "var(--font-mono)", 
+                                fontSize: "0.7rem",
+                                letterSpacing: "0.08em", 
+                                textTransform: "uppercase",
+                                color: "rgba(232, 244, 253, 0.3)",
+                                minWidth: "50px",
+                            }}>
+                                {f.label}
+                            </p>
+                            <div style={{
+                                flex: 1,
+                                height: "2px",
+                                background: "rgba(232, 244, 253, 0.06)",
+                                borderRadius: "1px", 
+                                overflow: "hidden",
+                            }}>
+                                <div style={{
+                                    height: "100%",
+                                    width: `${(f.value / 10) * 100}%`,
+                                    background: f.color, 
+                                    borderRadius: "1px",
+                                }}/>
+                            </div>
+                            <p style={{
+                                fontFamily: "var(--font-mono)",
+                                fontSize: "0.7rem",
+                                color: "rgba(232, 244, 253, 0.4)",
+                                minWidth: "28px",
+                                textAlign: "right",
+                            }}>
+                                {f.value}
+                            </p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            <div style={{padding: "1.2rem 1.5rem", borderBottom: "0.5px solid rgba(79, 158, 255, 0.08)"}}>
+                <p style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "0.78rem",
+                    letterSpacing: "0.14em",
+                    textTransform: "uppercase",
+                    color: "rgba(232, 244, 253, 0.22)",
+                    marginBottom: "0.8rem",
+                }}>
+                    Satélites visíveis agora
+                </p>
+                <div style={{display: "flex", flexDirection: "column", gap: "0.5rem"}}>
+                    {satsVisiveis.map(sat => (
+                        <div key={sat.id}
+                            className='flex items-center justify-between' 
+                            style={{
+                                padding: "0.6rem 0.8rem",
+                                background: sat.danger ? "rgba(255, 80, 80, 0.05)" : "rgba(79, 158, 255, 0.03)",
+                                border: `0.5px solid ${sat.danger ? "rgba(255, 80, 80, 0.2)" : "rgba(79, 158, 255, 0.08)"}`,
+                                borderRadius: "3px",
+                        }}>
+                            <div>
+                                <p style={{
+                                    fontFamily: "var(--font-mono)",
+                                    fontSize: "0.7rem",
+                                    color: sat.danger ? "rgba(255, 80,  80, 0.9)" : "var(--c-white)",
+                                    letterSpacing: "0.04em",
+                                    marginBottom: "2px",
+                                }}>
+                                    {sat.id}
+                                </p>
+                                <p style={{
+                                    fontFamily: "var(--font-mono)",
+                                    fontSize: "0.7rem",
+                                    color: "rgba(232, 244, 253, 0.3)",
+                                }}>
+                                    Alt: {sat.altitude}km · {sat.velocity} km/s
+                                </p>
+                            </div>
+                            <div style={{textAlign: "right"}}>
+                                <p style={{
+                                    fontFamily: "var(--font-mono)",
+                                    fontSize: "0.7rem",
+                                    color: sat.danger ? "rgba(255, 80, 80, 0.8)" : "var(--c-cyan)",
+                                    marginBottom: "2px",
+                                }}>
+                                    em {sat.passesIn} min
+                                </p>
+                                <p style={{
+                                    fontFamily: "var(--font-mono)",
+                                    fontSize: "0.7rem",
+                                    color: "rgba(232, 244, 253, 0.3)",
+                                }}>
+                                    mag {sat.magnitude}
+                                </p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            <div style={{padding: "1.2rem 1.5rem", borderBottom: "0.5px solid rgba(79, 158, 255, 0.08)"}}>
+                <div className='flex items-center gap-2' style={{marginBottom: "0.8rem"}}>
+                    <Camera size={14.5} style={{color: "var(--c-muted)"}}/>
+                    <p style={{
+                        fontFamily: "var(--font-mono)", 
+                        fontSize: "0.75rem",
+                        letterSpacing: "0.14em",
+                        textTransform: "uppercase",
+                        color: "rgba(232, 244, 253, 0.22)",
+                    }}>
+                        Modo Fotografia
+                    </p>
+                </div>
+                <div style={{display: "flex", gap: "0.5rem", marginBottom: "0.6rem"}}>
+                    <div style={{flex: 1}}>
+                        <p style={{
+                            fontFamily: "var(--font-mono)", 
+                            fontSize: "0.7rem",
+                            color: "rgba(232, 244, 253, 0.25)",
+                            marginBottom: "4px",
+                        }}>
+                            Exposição (s)
+                        </p>
+                        <input type='number' value={expSeg}
+                            onChange={e => setExpSeg(Number(e.target.value))}
+                            style={{
+                                width: "100%",
+                                background: "rgba(232, 244, 253, 0.04)",
+                                border: "0.5px solid rgba(232, 244, 253, 0.1)",
+                                borderRadius: "3px",
+                                padding: "0.4rem 0.6rem",
+                                fontFamily: "var(--font-mono)",
+                                fontSize: "0.65rem",
+                                color: "var(--c-white)",
+                                outline: "none",
+                            }}
+                        />
+                    </div>
+                    <div style={{flex: 1}}>
+                        <p style={{
+                            fontFamily: "var(--font-mono)",
+                            fontSize: "0.7rem",
+                            color: "rgba(232, 244, 253, 0.25)",
+                            marginBottom: "4px",
+                        }}>
+                            Azimute (°)
+                        </p>
+                        <input type="number" value={azimuth}
+                            onChange={e => setAzimuth(Number(e.target.value))}
+                            style={{
+                                width: "100%", 
+                                background: "rgba(232,244,253,0.04)",
+                                border: "0.5px solid rgba(232,244,253,0.1)", 
+                                borderRadius: "3px",
+                                padding: "0.4rem 0.6rem", 
+                                fontFamily: "var(--font-mono)",
+                                fontSize: "0.65rem", 
+                                color: "var(--c-white)", 
+                                outline: "none",
+                            }}
+                        />
+                    </div>
+                </div>
+                <div style={{
+                    padding: "0.5rem 0.7rem",
+                    background: rastrosEsperados > 0 ? "rgba(255, 184, 48, 0.06)" : "rgba(61,255,160,0.04)",
+                    border: `0.5px solid ${rastrosEsperados > 0 ? "rgba(255, 184, 48, 0.2)" : "rgba(61, 255, 160, 0.15)"}`,
+                    borderRadius: "3px",
+                }}>
+                    <p style={{
+                        fontFamily: "var(--font-mono)", 
+                        fontSize: "0.68rem",
+                        color: rastrosEsperados > 0 ? "rgba(255,184,48,0.8)" : "var(--c-green)",
+                        letterSpacing: "0.04em",
+                    }}>
+                        {rastrosEsperados > 0
+                            ? `⚠ ${rastrosEsperados} rastro(s) esperado(s) nesta janela`
+                            : "✓ Sem rastros esperados nesta janela"}
+                    </p>
+                </div>
+            </div>
+
+            <div className='flex items-center justify-between' style={{padding: "1rem 1.5rem", marginTop: "auto"}}>
+                <p style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "0.59rem",
+                    color: "var(--c-muted)",
+                    letterSpacing: "0.04em",
+                }}>
+                    Dados: CelesTrak · Open-Meteo · VIIRS
+                </p>
+                <div className='flex items-center gap-1'>
+                    <RefreshCw size={9} style={{color: "var(--c-muted)"}}/>
+                    <p style={{
+                        fontFamily: "var(--font-mono)",
+                        fontSize: "0.58rem",
+                        color: "var(--c-muted)",
+                        letterSpacing: "0.04em",
+                    }}>
+                        10 min
+                    </p>
+                </div>
+            </div>
+        </div>
+    )
+}
+
 function LayoutMapa({perfil}) {
     const [filtro, setFiltro] = useState("todos")
     const [expSeg, setExpSeg] = useState(30)
-    const [azimuth, setazimuth] = useState(180)
+    const [azimuth, setAzimuth] = useState(180)
     const {meta, satellites, scoreFactors} = data
 
     // Cálculo
@@ -216,48 +481,43 @@ function LayoutMapa({perfil}) {
     const rastrosEsperados = satellites.filter(s => s.passesIn <= expSeg / 60 + 5).length
 
     return (
-        <div style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 340px",
-            height: "calc(100vh - 64px)",
-        }}>
-            {/* Área do mapa */}
-            <div style={{borderRight: "0.5px solid rgba(79, 158, 255, 0.1)", position: "relative"}}>
-                <div className='flex items-center justify-between'
-                    style={{
+        <div style={{minHeight: "calc(100vh - 64px)"}}>
+            
+            {/* Layout desktop */}
+            <div className="hidden lg:grid" style={{
+                gridTemplateColumns: "1fr 340px",
+                height: "calc(100vh - 64px)",
+            }}>
+                {/* Área do mapa */}
+                <div style={{borderRight: "0.5px solid rgba(79, 158, 255, 0.1)", position: "relative"}}>
+                    <div className='flex items-center justify-between' style={{
                         padding: "1.2rem 2rem",
                         borderBottom: "0.5px solid rgba(79, 158, 255, 0.1)",
-                    }}
-                >
-                    <div>
-                        <p style={{
-                            fontFamily: "var(--font-display)",
-                            fontSize: "1.5rem",
-                            fontWeight: 300,
-                            color: "var(--c-white)",
-                        }}>
-                            Mapa Estelar ao Vivo
-                        </p>
-                        <p className='flex items-center gap-1'
-                            style={{
+                    }}>
+                        <div>
+                            <p style={{
+                                fontFamily: "var(--font-display)",
+                                fontSize: "1.5rem",
+                                fontWeight: 300,
+                                color: "var(--c-white)",
+                            }}>
+                                Mapa Estelar ao Vivo
+                            </p>
+                            <p className='flex items-center gap-1' style={{
                                 fontFamily: "var(--font-mono)",
                                 fontSize: "0.75rem",
                                 color: "var(--c-muted)",
                                 letterSpacing: "0.04em",
                                 marginTop: "3px",
-                            }}    
-                        >
-                            <MapPin size={14}/>
-                            {meta.location} · {meta.latitude}°S {Math.abs(meta.longitude)}°W · agora
-                        </p>
-                    </div>
-
-                    <div className='flex items-center gap-2'>
-                        <Filter size={19} style={{color: "var(--c-muted)"}}/>
-                        {["todos", "starlink", "oneweb", "noaa"].map(f => (
-                            <button key={f}
-                                onClick={() => setFiltro(f)}
-                                style={{
+                            }}>
+                                <MapPin size={14}/>
+                                {meta.location} · {meta.latitude}°S {Math.abs(meta.longitude)}°W · agora
+                            </p>
+                        </div>
+                        <div className='flex items-center gap-2'>
+                            <Filter size={19} style={{color: "var(--c-muted)"}}/>
+                            {["todos", "starlink", "oneweb", "noaa"].map(f => (
+                                <button key={f} onClick={() => setFiltro(f)} style={{
                                     fontFamily: "var(--font-mono)",
                                     fontSize: "0.7rem",
                                     letterSpacing: "0.08em",
@@ -265,97 +525,149 @@ function LayoutMapa({perfil}) {
                                     padding: "3px 10px",
                                     borderRadius: "3px",
                                     cursor: "pointer",
-                                    border: filtro === f
-                                        ? "0.5px solid rgba(79, 158, 255, 0.5)"
-                                        : "0.5px solid rgba(232, 244, 253, 0.1)",
-                                    background: filtro === f
-                                        ? "rgba(79, 158, 255, 0.1)"
-                                        : "transparent",
-                                    color: filtro === f
-                                        ? "var(--c-cyan)"
-                                        : "rgba(232, 244, 253, 0.35)",
+                                    border: filtro === f 
+                                        ? "0.5px solid rgba(79, 158, 255, 0.5)" : "0.5px solid rgba(232, 244, 253, 0.1)",
+                                    background: filtro === f ? "rgba(79, 158, 255, 0.1)" : "transparent",
+                                    color: filtro === f ? "var(--c-cyan)" : "rgba(232, 244, 253, 0.35)",
                                     transition: "all 0.2s ease",
-                                }}
-                            >                                
+                                }}>
+                                    {f}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    <div style={{height: "calc(100% - 65px)", position: "relative"}}>
+                        <MapaCanvas filtro={filtro} satellites={satsVisiveis}/>
+                    </div>
+                </div>
+
+                {/* Sidebar desktop */}
+                <SidebarConteudo
+                    score={score}
+                    status={status}
+                    scoreFactors={scoreFactors}
+                    satsVisiveis={satsVisiveis}
+                    expSeg={expSeg}
+                    setExpSeg={setExpSeg}
+                    azimuth={azimuth}
+                    setAzimuth={setAzimuth}
+                    rastrosEsperados={rastrosEsperados}
+                />
+            </div>
+
+            {/* Layout mobile/tablet */}
+            <div className="lg:hidden flex flex-col">
+
+                {/* Header */}
+                <div className='flex items-center justify-between' style={{
+                    padding: "1rem 1.5rem",
+                    borderBottom: "0.5px solid rgba(79, 158, 255, 0.1)",
+                }}>
+                    <div>
+                        <p style={{
+                            fontFamily: "var(--font-display)",
+                            fontSize: "1.2rem",
+                            fontWeight: 300,
+                            color: "var(--c-white)",
+                        }}>
+                            Mapa Estelar ao Vivo
+                        </p>
+                        <p style={{
+                            fontFamily: "var(--font-mono)",
+                            fontSize: "0.65rem",
+                            color: "var(--c-muted)",
+                        }}>
+                            {meta.location} · agora
+                        </p>
+                    </div>
+                    <div className='flex gap-1 flex-wrap justify-end'>
+                        {["todos", "starlink", "oneweb", "noaa"].map(f => (
+                            <button key={f} onClick={() => setFiltro(f)} style={{
+                                fontFamily: "var(--font-mono)",
+                                fontSize: "0.6rem",
+                                letterSpacing: "0.06em",
+                                textTransform: "uppercase",
+                                padding: "2px 7px",
+                                borderRadius: "3px",
+                                cursor: "pointer",
+                                border: filtro === f ? "0.5px solid rgba(79, 158, 255, 0.5)" : "0.5px solid rgba(232, 244, 253, 0.1)",
+                                background: filtro === f ? "rgba(79, 158, 255, 0.1)" : "transparent",
+                                color: filtro === f ? "var(--c-cyan)" : "rgba(232, 244, 253, 0.35)",
+                            }}>
                                 {f}
                             </button>
                         ))}
                     </div>
                 </div>
 
-                {/* Temporário!!! */}
                 {/* Canvas */}
-                <div style={{height: "calc(100% - 65px)", position: "relative"}}>
-                        <MapaCanvas filtro={filtro} satellites={satsVisiveis}/>
+                <div style={{height: "60vw", minHeight: "280px", maxHeight: "420px", position: "relative"}}>
+                    <MapaCanvas filtro={filtro} satellites={satsVisiveis}/>
                 </div>
-            </div>
 
-            {/* Sidebar */}
-            <div style={{
-                display: "flex",
-                flexDirection: "column",
-                overflowY: "auto",
-                background: "rgba(3, 5, 12, 0.85)",
-            }}>
-                <div style={{padding: "1.4rem 1.5rem", borderBottom: "0.5px solid rgba(79, 158, 255, 0.08)"}}>
-                    <p style={{
-                        fontFamily: "var(--font-mono)",
-                        fontSize: "0.8rem",
-                        letterSpacing: "0.16em",
-                        textTransform: "uppercase",
-                        color: "rgba(79, 158, 255, 0.6)",
-                        marginBottom: "0.4rem",
-                    }}>
-                        Sky Observation Score
-                    </p>
-                    <p style={{
-                        fontFamily: "var(--font-display)",
-                        fontSize: "4rem",
-                        fontWeight: 300,
-                        lineHeight: 1,
-                        color: "var(--c-white)",
-                        marginBottom: "0.2rem",
-                        letterSpacing: "-0.02em",
-                    }}>
-                        {score}
-                        <span style={{fontSize: "1.6rem", color: "rgba(232, 244, 253, 0.22)"}}>/10</span>
-                    </p>
-                    <div className='flex items-center gap-2' style={{marginBottom: "0.7rem", marginTop: "1rem"}}>
-                        <span style={{
-                            width: 5,
-                            height: 5,
-                            borderRadius: "50%",
-                            background: status.color,
-                            boxShadow: `0 0 5px ${status.color}`,
-                            display: "inline-block",
-                            flexShrink: 0
-                        }}/>
-                        <span style={{
-                            fontFamily: "var(--font-body)",
-                            fontSize: "0.75rem",
-                            letterSpacing: "0.06em",
+                {/* Score */}
+                <div style={{
+                    padding: "1.2rem 1.5rem",
+                    borderTop: "0.5px solid rgba(79, 158, 255, 0.08)",
+                    borderBottom: "0.5px solid rgba(79, 158, 255, 0.08)",
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "1rem",
+                    alignItems: "center",
+                }}>
+                    <div>
+                        <p style={{
+                            fontFamily: "var(--font-mono)",
+                            fontSize: "0.6rem",
+                            letterSpacing: "0.14em",
                             textTransform: "uppercase",
-                            color: status.color,
+                            color: "rgba(79, 158, 255, 0.6)",
+                            marginBottom: "0.3rem",
                         }}>
-                            {status.label}
-                        </span>
+                            Sky Observation Score
+                        </p>
+                        <p style={{
+                            fontFamily: "var(--font-display)",
+                            fontSize: "3rem",
+                            fontWeight: 300,
+                            lineHeight: 1,
+                            color: "var(--c-white)",
+                        }}>
+                            {score}<span style={{fontSize: "1.2rem", color: "rgba(232,244,253,0.22)"}}>/10</span>
+                        </p>
+                        <div className='flex items-center gap-2' style={{marginTop: "0.4rem"}}>
+                            <span style={{
+                                width: 5,
+                                height: 5,
+                                borderRadius: "50%",
+                                background: status.color,
+                                boxShadow: `0 0 5px ${status.color}`,
+                                display: "inline-block",
+                            }}/>
+                            <span style={{
+                                fontFamily: "var(--font-body)",
+                                fontSize: "0.7rem",
+                                letterSpacing: "0.06em",
+                                textTransform: "uppercase",
+                                color: status.color,
+                            }}>
+                                {status.label}
+                            </span>
+                        </div>
                     </div>
-
-                    <div style={{display: "flex", flexDirection: "column", gap: "0.4rem"}}>
+                    <div style={{display: "flex", flexDirection: "column", gap: "0.35rem"}}>
                         {[
                             {label: "Orbital", value: scoreFactors.orbital.value, color: "var(--c-cyan)"},
                             {label: "M_atm", value: scoreFactors.matm.value, color: "var(--c-cyan)"},
                             {label: "M_lum", value: scoreFactors.mlum.value, color: "var(--c-yellow)"},
                             {label: "ESP32", value: scoreFactors.local.value, color: "var(--c-green)"},
                         ].map(f => (
-                            <div key={f.label} className='flex items-center justify-between gap-2'>
+                            <div key={f.label} className='flex items-center gap-2'>
                                 <p style={{
                                     fontFamily: "var(--font-mono)",
-                                    fontSize: "0.7rem",
-                                    letterSpacing: "0.08em",
-                                    textTransform: "uppercase",
+                                    fontSize: "0.58rem",
                                     color: "rgba(232, 244, 253, 0.3)",
-                                    minWidth: "50px",
+                                    minWidth: "42px",
                                 }}>
                                     {f.label}
                                 </p>
@@ -375,9 +687,9 @@ function LayoutMapa({perfil}) {
                                 </div>
                                 <p style={{
                                     fontFamily: "var(--font-mono)",
-                                    fontSize: "0.7rem",
+                                    fontSize: "0.6rem",
                                     color: "rgba(232, 244, 253, 0.4)",
-                                    minWidth: "28px",
+                                    minWidth: "24px",
                                     textAlign: "right",
                                 }}>
                                     {f.value}
@@ -387,13 +699,11 @@ function LayoutMapa({perfil}) {
                     </div>
                 </div>
 
-                <div style={{
-                    padding: "1.2rem 1.5rem ",
-                    borderBottom: "0.5px solid rgba(79, 158, 255, 0.08)",
-                }}>
+                {/* Satélites */}
+                <div style={{padding: "1.2rem 1.5rem", borderBottom: "0.5px solid rgba(79, 158, 255, 0.08)"}}>
                     <p style={{
                         fontFamily: "var(--font-mono)",
-                        fontSize: "0.78rem",
+                        fontSize: "0.65rem",
                         letterSpacing: "0.14em",
                         textTransform: "uppercase",
                         color: "rgba(232, 244, 253, 0.22)",
@@ -401,38 +711,26 @@ function LayoutMapa({perfil}) {
                     }}>
                         Satélites visíveis agora
                     </p>
-                    <div style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "0.5rem"
-                    }}>
+                    <div style={{display: "flex", flexDirection: "column", gap: "0.5rem"}}>
                         {satsVisiveis.map(sat => (
-                            <div key={sat.id}
-                                className='flex items-center justify-between'
-                                style={{
-                                    padding: "0.6rem 0.8rem",
-                                    background: sat.danger
-                                        ? "rgba(255, 80, 80, 0.05)"
-                                        : "rgba(79, 158, 255,  0.03)",
-                                    border: `0.5px solid ${sat.danger ? "rgba(255,80,80,0.2)" : "rgba(79,158,255,0.08)"}`,
-                                    borderRadius: "3px",
-                                }}
-                            >        
+                            <div key={sat.id} className='flex items-center justify-between' style={{
+                                padding: "0.6rem 0.8rem",
+                                background: sat.danger ? "rgba(255, 80, 80, 0.05)" : "rgba(79, 158, 255, 0.03)",
+                                border: `0.5px solid ${sat.danger ? "rgba(255, 80, 80, 0.2)" : "rgba(79, 158, 255, 0.08)"}`,
+                                borderRadius: "3px",
+                            }}>
                                 <div>
                                     <p style={{
                                         fontFamily: "var(--font-mono)",
                                         fontSize: "0.7rem",
-                                        color: sat.danger 
-                                            ? "rgba(255, 80, 80, 0.9)" 
-                                            : "var(--c-white)",
-                                        letterSpacing: "0.04em",
+                                        color: sat.danger ? "rgba(255, 80, 80, 0.9)" : "var(--c-white)",
                                         marginBottom: "2px",
                                     }}>
                                         {sat.id}
                                     </p>
                                     <p style={{
                                         fontFamily: "var(--font-mono)",
-                                        fontSize: "0.7rem",
+                                        fontSize: "0.62rem",
                                         color: "rgba(232, 244, 253, 0.3)",
                                     }}>
                                         Alt: {sat.altitude}km · {sat.velocity} km/s
@@ -442,16 +740,14 @@ function LayoutMapa({perfil}) {
                                     <p style={{
                                         fontFamily: "var(--font-mono)",
                                         fontSize: "0.7rem",
-                                        color: sat.danger 
-                                            ? "rgba(255, 80, 80, 0.8)"
-                                            : "var(--c-cyan)",
+                                        color: sat.danger ? "rgba(255, 80, 80, 0.8)" : "var(--c-cyan)",
                                         marginBottom: "2px",
                                     }}>
                                         em {sat.passesIn} min
                                     </p>
                                     <p style={{
                                         fontFamily: "var(--font-mono)",
-                                        fontSize: "0.7rem",
+                                        fontSize: "0.62rem",
                                         color: "rgba(232, 244, 253, 0.3)",
                                     }}>
                                         mag {sat.magnitude}
@@ -463,12 +759,12 @@ function LayoutMapa({perfil}) {
                 </div>
 
                 {/* Modo Fotografia */}
-                <div style={{padding: "1.2rem 1.5rem", borderBottom: "0.5px solid rgba(79, 158, 255, 0.08)"}}>
+                <div style={{padding: "1.2rem 1.5rem"}}>
                     <div className='flex items-center gap-2' style={{marginBottom: "0.8rem"}}>
-                        <Camera size={14.5} style={{color: "var(--c-muted)"}}/>
+                        <Camera size={14} style={{color: "var(--c-muted)"}}/>
                         <p style={{
                             fontFamily: "var(--font-mono)",
-                            fontSize: "0.75rem",
+                            fontSize: "0.65rem",
                             letterSpacing: "0.14em",
                             textTransform: "uppercase",
                             color: "rgba(232, 244, 253, 0.22)",
@@ -476,24 +772,17 @@ function LayoutMapa({perfil}) {
                             Modo Fotografia
                         </p>
                     </div>
-                    <div style={{
-                        display: "flex",
-                        gap: "0.5rem",
-                        marginBottom: "0.6rem",
-                    }}>
+                    <div style={{display: "flex", gap: "0.5rem", marginBottom: "0.6rem"}}>
                         <div style={{flex: 1}}>
                             <p style={{
                                 fontFamily: "var(--font-mono)",
-                                fontSize: "0.7rem",
+                                fontSize: "0.62rem",
                                 color: "rgba(232, 244, 253, 0.25)",
                                 marginBottom: "4px",
-                                letterSpacing: "0.06em",
                             }}>
                                 Exposição (s)
                             </p>
-                            <input
-                                type='number'
-                                value={expSeg}
+                            <input type='number' value={expSeg}
                                 onChange={e => setExpSeg(Number(e.target.value))}
                                 style={{
                                     width: "100%",
@@ -502,7 +791,7 @@ function LayoutMapa({perfil}) {
                                     borderRadius: "3px",
                                     padding: "0.4rem 0.6rem",
                                     fontFamily: "var(--font-mono)",
-                                    fontSize: "0.65rem",
+                                    fontSize: "0.72rem",
                                     color: "var(--c-white)",
                                     outline: "none",
                                 }}
@@ -511,17 +800,14 @@ function LayoutMapa({perfil}) {
                         <div style={{flex: 1}}>
                             <p style={{
                                 fontFamily: "var(--font-mono)",
-                                fontSize: "0.7rem",
+                                fontSize: "0.62rem",
                                 color: "rgba(232, 244, 253, 0.25)",
                                 marginBottom: "4px",
-                                letterSpacing: "0.06em",
                             }}>
-                                azimuth (°)
+                                Azimute (°)
                             </p>
-                            <input
-                                type='number'
-                                value={azimuth}
-                                onChange={e => setazimuth(Number(e.target.value))}
+                            <input type='number' value={azimuth}
+                                onChange={e => setAzimuth(Number(e.target.value))}
                                 style={{
                                     width: "100%",
                                     background: "rgba(232, 244, 253, 0.04)",
@@ -529,7 +815,7 @@ function LayoutMapa({perfil}) {
                                     borderRadius: "3px",
                                     padding: "0.4rem 0.6rem",
                                     fontFamily: "var(--font-mono)",
-                                    fontSize: "0.65rem",
+                                    fontSize: "0.72rem",
                                     color: "var(--c-white)",
                                     outline: "none",
                                 }}
@@ -538,51 +824,18 @@ function LayoutMapa({perfil}) {
                     </div>
                     <div style={{
                         padding: "0.5rem 0.7rem",
-                        background: rastrosEsperados > 0
-                            ? "rgba(255, 184, 48, 0.06)"
-                            : "rgba(61, 255, 160, 0.04)",
-                        border: `0.5px solid ${rastrosEsperados > 0
-                            ? "rgba(255, 184, 48, 0.2)"
-                            : "rgba(61, 255, 160, 0.15)"}`,
+                        background: rastrosEsperados > 0 ? "rgba(255, 184, 48, 0.06)" : "rgba(61, 255, 160, 0.04)",
+                        border: `0.5px solid ${rastrosEsperados > 0 ? "rgba(255, 184, 48, 0.2)" : "rgba(61, 255, 160, 0.15)"}`,
                         borderRadius: "3px",
                     }}>
                         <p style={{
                             fontFamily: "var(--font-mono)",
                             fontSize: "0.68rem",
-                            color: rastrosEsperados > 0
-                                ? "rgba(255, 184, 48, 0.8)"
-                                : "var(--c-green)",
-                            letterSpacing: "0.04em",
+                            color: rastrosEsperados > 0 ? "rgba(255, 184, 48, 0.8)" : "var(--c-green)",
                         }}>
                             {rastrosEsperados > 0
                                 ? `⚠ ${rastrosEsperados} rastro(s) esperado(s) nesta janela`
                                 : "✓ Sem rastros esperados nesta janela"}
-                        </p>
-                    </div>
-                </div>
-
-                <div className='flex items-center justify-between'
-                    style={{
-                        padding: "1rem 1.5rem", marginTop: "auto",
-                    }}
-                >
-                    <p style={{
-                        fontFamily: "var(--font-mono)",
-                        fontSize: "0.59rem",
-                        color: "var(--c-muted)",
-                        letterSpacing: "0.04em",
-                    }}>
-                        Dados: CelesTrak · Open-Meteo · VIIRS
-                    </p>
-                    <div className='flex items-center gap-1'>
-                        <RefreshCw size={9} style={{color: "var(--c-muted)"}}/>
-                        <p style={{
-                            fontFamily: "var(--font-mono)",
-                            fontSize: "0.58rem",
-                            color: "var(--c-muted)",
-                            letterSpacing: "0.04em",
-                        }}>
-                            10 min
                         </p>
                     </div>
                 </div>
