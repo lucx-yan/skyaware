@@ -39,12 +39,12 @@ function MapaCanvas({filtro, satellites}) {
         // Satélites no fundo
         const sats = satellites.map(sat => ({
             ...sat,
-            x: sat.azimute / 360,
+            x: sat.azimuth / 360,
             y: 1 - (sat.elevation / 90),
             dx: (Math.random() - 0.5) * 0.0008,
             dy: (Math.random() - 0.5) * 0.0003,
             tl: 22 + Math.random() * 18,
-            ang: sat.azimute * (Math.PI / 180) - Math.PI / 2,
+            ang: sat.azimuth * (Math.PI / 180) - Math.PI / 2,
         }))
 
         function draw() {
@@ -194,7 +194,7 @@ export default function MapaCeu({perfil}) {
 function LayoutMapa({perfil}) {
     const [filtro, setFiltro] = useState("todos")
     const [expSeg, setExpSeg] = useState(30)
-    const [azimute, setAzimute] = useState(180)
+    const [azimuth, setazimuth] = useState(180)
     const {meta, satellites, scoreFactors} = data
 
     // Cálculo
@@ -516,12 +516,12 @@ function LayoutMapa({perfil}) {
                                 marginBottom: "4px",
                                 letterSpacing: "0.06em",
                             }}>
-                                Azimute (°)
+                                azimuth (°)
                             </p>
                             <input
                                 type='number'
-                                value={azimute}
-                                onChange={e => setAzimute(Number(e.target.value))}
+                                value={azimuth}
+                                onChange={e => setazimuth(Number(e.target.value))}
                                 style={{
                                     width: "100%",
                                     background: "rgba(232, 244, 253, 0.04)",

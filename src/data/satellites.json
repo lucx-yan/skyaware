@@ -2,18 +2,18 @@
     "satellites" : [
         {
             "id" : "STARLINK-3847",
-            "constellation" : "StarLink",
+            "constellation" : "Starlink",
             "altitude" : 542,
             "velocity" : 7.6,
             "magnitude" : 2.1,
             "passesIn" : 4,
-            "aszimuth" : 218,
+            "azimuth" : 218,
             "elevation" : 67,
             "danger" : true
         },
         {
             "id" : "STARLINK-2201",
-            "constellation" : "StarLink",
+            "constellation" : "Starlink",
             "altitude" : 548,
             "velocity" : 7.6,
             "magnitude" : 3.4,
@@ -29,7 +29,7 @@
             "velocity" : 7.1,
             "magnitude" : 4.2,
             "passesIn" : 28,
-            "aszimuth" : 90,
+            "azimuth" : 90,
             "elevation" : 32,
             "danger" : false
         },
@@ -40,18 +40,18 @@
             "velocity" : 7.3,
             "magnitude" : 5.1,
             "passesIn" : 41,
-            "aszimuth" : 310,
+            "azimuth" : 310,
             "elevation" : 78,
             "danger" : false
         },
         {
             "id" : "STARLINK-4102",
-            "constellation" : "StarLink",
+            "constellation" : "Starlink",
             "altitude" : 551,
             "velocity" : 7.6,
             "magnitude" : 2.8,
             "passesIn" : 56,
-            "aszimuth" : 200,
+            "azimuth" : 200,
             "elevation" : 55,
             "danger" : false
         },
@@ -62,7 +62,7 @@
             "velocity" : 7.5,
             "magnitude" : 3.9,
             "passesIn" : 74,
-            "aszimuth" : 140,
+            "azimuth" : 140,
             "elevation" : 28,
             "danger" : false
         }
