@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MapPin, Bell, AlertTriangle, CheckCircle, Clock, Icon, SliceIcon } from "lucide-react";
+import { MapPin, Bell, AlertTriangle, CheckCircle, Clock } from "lucide-react";
 import data from "../data/satellites.json"
 
 const ALERTAS_DATA = {
@@ -211,6 +211,8 @@ function JanelasObservacao({perfil}) {
                 display: "grid",
                 gridTemplateColumns: "repeat(7, 1fr)",
                 gap: "0.6rem",
+                marginBottom: "1rem",
+                overflowX: "auto",
             }}>
                 {weekForecast.map((dia, i) => {
                     const cor = dia.score >= 7
@@ -274,7 +276,7 @@ function JanelasObservacao({perfil}) {
                             }}>
                                 <div style={{
                                     height: "100%",
-                                    width: `%{(dia.score / 10) * 100%}`,
+                                    width: `${(dia.score / 10) * 100}%`,
                                     background: cor,
                                     borderRadius: "1px",
                                 }}/>
@@ -341,7 +343,7 @@ function JanelasObservacao({perfil}) {
                             </div>
                             <div style={{textAlign: "right"}}>
                                 <p style={{
-                                    fontFamily: "var(font-display)",
+                                    fontFamily: "var(--font-display)",
                                     fontSize: "1.4rem",
                                     fontWeight: 300,
                                     color: dia.score === 0 ? "var(--c-red)" : cor,
@@ -350,7 +352,7 @@ function JanelasObservacao({perfil}) {
                                     {dia.score === 0 ? "—" : dia.score.toFixed(1)}
                                 </p>
                                 <p style={{
-                                    fontFamily: "var(font-mono)",
+                                    fontFamily: "var(--font-mono)",
                                     fontSize: "0.58rem",
                                     color: "rgba(232, 244, 253, 0.25)",
                                 }}>
@@ -443,9 +445,7 @@ function PainelSimulacao() {
                 </p>
             </div>
 
-            <div className="grid-cols-1 lg:grid-cols-3" style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, 1fr)",
+            <div className="grid grid-cols-1 lg:grid-cols-3" style={{
                 gap: "1.5rem",
                 marginBottom: "1.5rem",
             }}>
@@ -576,7 +576,7 @@ export default function Alertas({perfil}) {
     }[perfil] || "Astrônomo Amador"
 
     return (
-        <div className="relative z-10" style={{minHeight: "100vh", padding: "5rem 4rem 4rem"}}>
+        <div className="relative z-10 px-5 lg:px-16" style={{minHeight: "100vh", paddingTop: "5rem ", paddingBottom: "4rem", overflowX: "hidden"}}>
             {/* Headeer */}
             <div style={{marginBottom: "3rem", fontSize: "0.76rem"}}>
                 <p className="section-kicker" style={{marginBottom: "1rem"}}>
@@ -653,9 +653,7 @@ export default function Alertas({perfil}) {
 
             <div className="divider-line" style={{marginBottom: "2.5rem"}}/>
 
-            <div className="grid-cols-1 lg:grid-cols-2" style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(2, 1fr)",
+            <div className="grid grid-cols-1 lg:grid-cols-2" style={{
                 gap: "1rem",
                 marginBottom: "4rem", 
             }}>
