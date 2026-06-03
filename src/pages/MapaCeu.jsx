@@ -535,7 +535,7 @@ function SidebarConteudo({perfil, score, status, scoreFactors, satsVisiveis, exp
                     color: "var(--c-muted)",
                     letterSpacing: "0.04em",
                 }}>
-                    Dados: CelesTrak · Open-Meteo · VIIRS
+                    Dados: N2YO · Open-Meteo · VIIRS
                 </p>
                 <div className='flex items-center gap-1'>
                     <RefreshCw size={9} style={{color: "var(--c-muted)"}}/>
