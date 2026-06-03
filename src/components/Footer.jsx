@@ -11,7 +11,7 @@ const FOOTER_LINKS = [
 ]
 
 const DATA_SOURCES = [
-    { label: "CelesTrak TLE", href: "https://celestrak.org/" },
+    { label: "N2YO API", href: "https://www.n2yo.com/api/" },
     { label: "Open-Meteo API", href: "https://open-meteo.com/" },
     { label: "VIIRS / NASA", href: "https://www.nasa.gov/mission_pages/NPP/main/index.html" },
     { label: "Space-Track.org", href: "https://www.space-track.org/" },

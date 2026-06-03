@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom"
-import { ChevronRight, MapPin, RefreshCw, Telescope, Camera, FlaskConical, Icon, Columns, Baseline } from "lucide-react"
+import { ChevronRight, MapPin, RefreshCw, Telescope, Camera, FlaskConical } from "lucide-react"
 import data from "../data/satellites.json"
 
 // Hero
@@ -403,7 +403,7 @@ function Sobre() {
     const perfil = [
         {
             icon: Telescope,
-            titulo: "Atrônomo Amador",
+            titulo: "Astrônomo Amador",
             descricao: "Score geral, previsão semanal e dicas do que observar esta noite.",
             cor: "var(--c-green)",
         },
@@ -545,7 +545,7 @@ function Features() {
         },
         {
             num: "04",
-            titulo: "Modo Fotogfrafia",
+            titulo: "Modo Fotografia",
             descricao: "Calcule rastros esperados por tempo de exposição e direção de câmera antes de sair para fotografar. Evite rastros nas longas exposições.",
         },
         {
