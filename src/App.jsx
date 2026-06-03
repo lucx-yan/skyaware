@@ -10,7 +10,7 @@ import Home from "./pages/Home"
 import Problema from "./pages/Problema"
 import ComoFunciona from "./pages/ComoFunciona"
 import MapaCeu from "./pages/MapaCeu"
-
+import Alertas from "./pages/Alertas"
 import Impacto from "./pages/Impacto"
 import Sobre from "./pages/Sobre"
 
@@ -68,7 +68,7 @@ function AppContent() {
               <Route path="/problema" element={<Problema />} />
               <Route path="/como-funciona" element={<ComoFunciona />} />
               <Route path="/mapa-ceu" element={<MapaCeu perfil={perfil} />} />
-              
+              <Route path="/alertas" element={<Alertas perfil={perfil}/>}/>
               <Route path="/impacto" element={<Impacto />} />
               <Route path="/sobre" element={<Sobre />} />
             </Routes>
