@@ -152,6 +152,8 @@ npm run deploy
 
 ```
 skyaware/
+├── public/
+│   └── 404.html
 ├── src/
 │   ├── components/
 │   │   ├── Navbar.jsx
