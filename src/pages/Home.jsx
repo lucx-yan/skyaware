@@ -23,11 +23,12 @@ function Hero({ perfil }) {
         return `${meta.starlinkActive.toLocaleString()} Starlink ativos agora`
     }
     return (
-        <section className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-12"
-            style={{ padding: "6rem 4rem 4rem" }}
+        <section
+            className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-12 px-5 lg:px-16"
+            style={{paddingTop: "5rem", paddingBottom: "3rem"}}
         >
             {/* Lado Esquerdo */}
-            <div className="flex-1" style={{ maxWidth: "520px" }}>
+            <div className="flex-1 w-full" style={{maxWidth: "520px"}}>
 
                 <p className="section-kicker animate-fade-in-up"
                     style={{
@@ -355,10 +356,9 @@ function StatsBar() {
         {value: "7 dias", label: "Previsão em tempo real"},
     ]
     return (
-        <div className="relative z-10"
+        <div
+            className="relative z-10 grid grid-cols-2 lg:grid-cols-4"
             style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(4, 1fr)",
                 borderTop: "0.5px solid rgba(232, 244, 253, 0.05)",
                 borderBottom: "0.5px solid rgba(232, 244, 253, 0.05)",
             }}
@@ -366,16 +366,19 @@ function StatsBar() {
             {stats.map((stat, i) => (
                 <div key={i}
                     style={{
-                        padding: "2rem 3rem",
+                        padding: "1.5rem 1rem",
                         textAlign: "center",
-                        borderRight: i < stats.length - 1
+                        borderRight: i % 2 === 0
+                            ? "0.5px solid rgba(232, 244, 253, 0.05)"
+                            : "none",
+                        borderBottom: i < 2
                             ? "0.5px solid rgba(232, 244, 253, 0.05)"
                             : "none",
                     }}
                 >
                     <p style={{
                         fontFamily: "var(--font-display)",
-                        fontSize: "2.6rem",
+                        fontSize: "clamp(1.6rem, 4vw, 2.6rem)",
                         fontWeight: 300,
                         lineHeight: 1,
                         color: "var(--c-white)",
@@ -385,7 +388,7 @@ function StatsBar() {
                     </p>
                     <p style={{
                         fontFamily: "var(--font-mono)",
-                        fontSize: "0.75rem",
+                        fontSize: "0.62rem",
                         letterSpacing: "0.12em",
                         textTransform: "uppercase",
                         color: "var(--c-muted)",
@@ -421,19 +424,19 @@ function Sobre() {
         },
     ]
     return (
-        <section className="relative z-10"
+        <section
+            className="relative z-10 grid grid-cols-1 lg:grid-cols-[1fr_1.3fr] px-5 lg:px-16"
             style={{
-                padding: "4rem 4rem",
+                paddingTop: "3rem",
+                paddingBottom: "3rem",
                 borderBottom: "0.5px solid rgba(232, 244, 253, 0.04)",
-                display: "grid",
-                gridTemplateColumns: "1fr 1.3fr",
-                gap: "6rem",
+                gap: "3rem",
                 alignItems: "start",
             }}
         >
             {/* Coluna esquerda */}
             <div>
-                <p className="section-kicker" 
+                <p className="section-kicker"
                     style={{
                         fontSize: "0.9rem",
                         marginBottom: "1rem",
@@ -502,10 +505,9 @@ function Sobre() {
                 display: "flex",
                 flexDirection: "column",
                 gap: "1.1rem",
-                marginTop: "4.6rem",
             }}>
                 {[
-                    {texto: "Desde 2019, empresas como SpaceX, Amazon e OneWeb lançaram milhares de satélites em órbita baixa. A Starlink já possui mais de <b>6.000 ativos</b>, com aprovação para chegar a 42.000. Cada satélite reflete luz solar e deixa rastros visíveis nas fotografias e observações.,"},
+                    {texto: "Desde 2019, empresas como SpaceX, Amazon e OneWeb lançaram milhares de satélites em órbita baixa. A Starlink já possui mais de <b>6.000 ativos</b>, com aprovação para chegar a 42.000. Cada satélite reflete luz solar e deixa rastros visíveis nas fotografias e observações."},
                     {texto: "Observatórios como o <b>Vera C. Rubin</b> estimam que até <b>30% das imagens científicas</b> já são contaminadas. Para o astrônomo amador ou fotógrafo noturno, uma noite planejada com semanas de antecedência pode ser completamente arruinada."},
                     {texto: "O SkyAware responde uma pergunta simples: <b>o céu está livre agora?</b> Cruzando dados orbitais reais da NASA e ESA com condições locais medidas pelo ESP32, entregamos o momento exato de olhar para cima."},
                 ].map((item, i) => (
@@ -562,8 +564,11 @@ function Features() {
 
     return (
         <section className="relative z-10">
-            <div style={{
-                    padding: "2.5rem 4rem 1.2rem",
+            <div
+                className="px-5 lg:px-16"
+                style={{
+                    paddingTop: "2.5rem",
+                    paddingBottom: "1.2rem",
                     borderBottom: "0.5px solid rgba(232, 244, 253, 0.04)",
                     display: "flex",
                     alignItems: "baseline",
@@ -583,21 +588,15 @@ function Features() {
                 </p>
             </div>
 
-            <div style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, 1fr)",
-            }}>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                 {features.map((f, i) => (
                     <div key={f.num}
+                        className="px-5 lg:px-10"
                         style={{
-                            padding: "2.2rem 2.5rem",
-                            borderRight: (i + 1) % 3 !== 0
-                                ? "0.5px solid rgba(232, 244, 253, 0.05)"
-                                : "none",
-                            borderBottom: i < 3
-                                ? "0.5px solid rgba(232, 244, 253, 0.05)"
-                                : "none",
-                            transition: "background 0.2s ease",  
+                            paddingTop: "2rem",
+                            paddingBottom: "2rem",
+                            borderBottom: "0.5px solid rgba(232, 244, 253, 0.05)",
+                            transition: "background 0.2s ease",
                         }}
                         onMouseEnter={e => e.currentTarget.style.background = "rgba(79, 158, 255, 0.03)"}
                         onMouseLeave={e => e.currentTarget.style.background = "transparent"}
@@ -642,9 +641,11 @@ function Features() {
 // CTA
 function CTA() {
     return (
-        <section className="relative z-10"
+        <section
+            className="relative z-10 px-5 lg:px-16"
             style={{
-                padding: "5rem 4rem",
+                paddingTop: "4rem",
+                paddingBottom: "4rem",
                 textAlign: "center",
                 borderTop: "0.5px solid rgba(232, 244, 253, 0.04)",
             }}
@@ -687,7 +688,7 @@ function CTA() {
 
 export default function Home({ perfil }) {
     return (
-        <div className="relative z-10">
+        <div className="relative z-10" style={{overflowX: "hidden"}}>
             <Hero perfil={perfil} />
             <StatsBar />
             <Sobre />
