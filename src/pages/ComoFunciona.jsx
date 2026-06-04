@@ -3,74 +3,74 @@ const CAMADAS = [
         num: "01",
         nome: "Orbital",
         cor: "#4f9eff",
-        descricao: "Dados reais de satélites em órbita. O sistema consome arquivos TLE (Two-Line Elements) do CelesTrak, usa a biblioteca SGP4 para calcular a posição futura de cada satélite, e integra VIIRS (poluição luminosa) e MODIS (nebulosidade) da NASA. Atualização a cada 6 horas.",
-        tags: ["NASA", "ESA", "CELESTRAK"],
-        pills: ["TLE / CelesTrak", "SGP4 Python", "NASA VIIRS", "NASA MODIS", "Space-Track.org"],
+        descricao: "Dados reais de satélites em órbita. O sistema consome posições orbitais em tempo real via N2YO API (REST v1), que retorna latitude, longitude, altitude, azimute e elevação de cada satélite monitorado. A poluição luminosa é derivada do BORTLE_MAP baseado no Atlas Mundial de Poluição Luminosa (Falchi et al., 2016). A cobertura de nuvens vem da Open-Meteo API, atualizada a cada 10 minutos por coordenada.",
+        tags: ["N2YO", "NASA", "ESA"],
+        pills: ["N2YO API v1", "Open-Meteo API", "VIIRS / NASA", "BORTLE_MAP", "Space-Track.org"],
     },
     {
         num: "02",
         nome: "Analítica",
         cor: "#a78bfa",
-        descricao: "O backend Python processa os dados orbitais, calcula o score parcial (orbital + luminoso + atmosférico) e publica no FIWARE Orion Context Broker. O STH Comet armazena o histórico temporal. O dado também é enviado ao ESP32 via MQTT para processamento local.",
-        tags: ["PYTHON", "FIWARE"],
-        pills: ["Python 3.x", "FIWARE Orion CB", "STH Comet", "MQTT", "Docker Compose"],
+        descricao: "O backend Python processa os dados orbitais da N2YO API, os dados atmosféricos da Open-Meteo e os dados físicos do ESP32 (via FIWARE Orion CB), e calcula o score híbrido completo — Score = B × M_atm × M_lum × 10. O Python é o único responsável pelo cálculo. Os resultados são publicados no FIWARE Orion CB e expostos via Flask API com HTTPS.",
+        tags: ["PYTHON", "FIWARE", "FLASK"],
+        pills: ["Python 3.x", "Flask API", "FIWARE Orion CB", "Nginx + Let's Encrypt", "Docker Compose"],
     },
     {
         num: "03",
         nome: "Edge",
         cor: "#3dffa0",
-        descricao: "O ESP32 recebe o score parcial do FIWARE via MQTT e o combina com leituras físicas locais: LDR (poluição luminosa local), DHT22 (umidade e temperatura) e BMP280 (pressão). Calcula o score final localmente e aciona LED RGB, buzzer e display OLED.",
-        tags: ["ESP32", "IOT"],
-        pills: ["ESP32 Wokwi", "LDR / BH1755", "DHT22", "BMP280", "OLED SSD1306"],
+        descricao: "O ESP32 coleta dados físicos brutos dos sensores locais — LDR (luminosidade), DHT22 (umidade e temperatura) e BMP180 (pressão atmosférica) — e os publica via MQTT ao FIWARE Orion CB. O Python busca esses dados, calcula o score híbrido completo e envia o comando de LED de volta ao ESP32 via MQTT. O ESP32 obedece o comando e acende o LED correspondente.",
+        tags: ["ESP32", "IOT", "MQTT"],
+        pills: ["ESP32 Wokwi", "LDR / BH1750", "DHT22", "BMP180", "OLED SSD1306"],
     },
     {
         num: "04",
         nome: "Interface",
         cor: "#ffd166",
-        descricao: "O dashboard em React 18 + Vite consome o JSON de dados e renderiza o Sky Observation Score, mapa estelar interativo, linha do tempo de 12h e alertas em tempo real. Roteamento via React Router DOM. Deploy estático no GitHub Pages.",
+        descricao: "O dashboard em React + Vite consome a Flask API via HTTPS (endpoints /score, /forecast, /location) e renderiza o Sky Observation Score, mapa estelar interativo, previsão semanal de 7 dias e alertas em tempo real. O conteúdo adapta por perfil de usuário (Amador, Fotógrafo, Profissional). Deploy estático no GitHub Pages.",
         tags: ["REACT", "VITE", "TAILWIND"],
-        pills: ["React 18", "Vite 6", "Tailwind CSS v3", "React Router DOM", "GitHub Pages"],
+        pills: ["React 19", "Vite 8", "Tailwind CSS v3", "React Router DOM", "GitHub Pages"],
     },
 ]
 
 const FATORES = [
     {
-        label: "FATOR ORBITAL",
-        desc: "Fonte: TLE + SGP4 · CelesTrak · densidade de satélites visíveis",
-        pct: 40,
+        label: "F_ORBITAL",
+        desc: "Fonte: N2YO API · posições em tempo real · peso 70% na base B",
+        pct: 70,
         cor: "#4f9eff",
-        peso: "0.40",
+        peso: "0.70",
     },
     {
-        label: "FATOR LUMINOSO",
-        desc: "Fonte: VIIRS · NASA/NOAA · poluição luminosa 750m resolução",
+        label: "F_LOCAL (ESP32)",
+        desc: "Fonte: LDR + DHT22 + BMP180 · dados físicos hiperlocais · peso 30% na base B",
         pct: 30,
-        cor: "#ffd166",
+        cor: "#3dffa0",
         peso: "0.30",
     },
     {
-        label: "FATOR ATMOSFÉRICO",
-        desc: "Fonte: MODIS · NASA · cobertura de nuvens atualizada 1–2h",
-        pct: 20,
+        label: "M_ATM (modificador)",
+        desc: "Fonte: Open-Meteo API · cobertura de nuvens · multiplica o score final",
+        pct: 90,
         cor: "#a78bfa",
-        peso: "0.20",
+        peso: "×",
     },
     {
-        label: "FATOR LOCAL (FÍSICO)",
-        desc: "Fonte: LDR + DHT22 + BMP280 · dados físicos hiperlocais",
-        pct: 10,
-        cor: "#3dffa0",
-        peso: "0.10",
+        label: "M_LUM (modificador)",
+        desc: "Fonte: VIIRS/NASA · BORTLE_MAP · poluição luminosa · multiplica o score final",
+        pct: 63,
+        cor: "#ffd166",
+        peso: "×",
     },
 ]
 
 const FLUXO = [
-    { label: "CelesTrak", sub: "TLE / SGP4", cor: "#4f9eff" },
-    { label: "VIIRS\nMODIS", sub: "NASA", cor: "#4f9eff" },
-    { label: "Python\nScore Parcial", sub: "ANALÍTICA", cor: "#a78bfa" },
+    { label: "N2YO\nAPI", sub: "ORBITAL", cor: "#4f9eff" },
+    { label: "Open-Meteo\nVIIRS", sub: "ATMOSFÉRICO", cor: "#4f9eff" },
+    { label: "Python\nFlask API", sub: "ANALÍTICA", cor: "#a78bfa" },
     { label: "FIWARE\nOrion CB", sub: "CONTEXT BROKER", cor: "#a78bfa" },
     { label: "ESP32\n+ Sensores", sub: "EDGE", cor: "#3dffa0" },
-    { label: "LDR + OLED\n+ Buzzer", sub: "FIRMWARE", cor: "#3dffa0" },
+    { label: "LED + OLED\n+ Buzzer", sub: "FIRMWARE", cor: "#3dffa0" },
     { label: "React\nDashboard", sub: "INTERFACE", cor: "#ffd166" },
 ]
 
@@ -112,10 +112,10 @@ function FluxoNode({ node }) {
 
 export default function ComoFunciona() {
     return (
-        <div className="relative z-10 pt-10">
+        <div className="relative z-10 pt-10" style={{ overflowX: "hidden" }}>
 
             {/* Hero */}
-            <section className="px-16 pt-16 pb-12 grid grid-cols-2 gap-16 items-start">
+            <section className="px-5 lg:px-16 pt-16 pb-12 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
                 <div>
                     <p className="section-kicker animate-fade-in-up text-[0.76rem]">
                         ◈ Arquitetura — do satélite à sua tela
@@ -131,13 +131,13 @@ export default function ComoFunciona() {
                     </h1>
                 </div>
 
-                <p className="animate-fade-in-up delay-300 [font-family:var(--font-body)] text-[0.95rem] font-light leading-[1.8] text-[var(--c-muted)] self-end pb-2">
-                    O SkyAware opera em quatro camadas interdependentes: dados orbitais de satélites reais da NASA e ESA, processamento analítico em Python, validação física local pelo ESP32 e entrega visual em React. O dado percorre 600km de altitude até o seu dashboard em tempo real.
+                <p className="animate-fade-in-up delay-300 [font-family:var(--font-body)] text-[0.95rem] font-light leading-[1.8] text-[var(--c-muted)] lg:self-end lg:pb-2">
+                    O SkyAware opera em quatro camadas interdependentes: dados orbitais via N2YO API e condições atmosféricas via Open-Meteo, processamento analítico completo em Python + Flask, validação física local pelo ESP32 e entrega visual em React. O dado percorre 600km de altitude até o seu dashboard em tempo real.
                 </p>
             </section>
 
             {/* Diagrama de fluxo */}
-            <section className="px-16 pb-14 border-b border-[rgba(232,244,253,0.04)]">
+            <section className="px-5 lg:px-16 pb-14 border-b border-[rgba(232,244,253,0.04)]">
                 <p className="section-kicker text-[0.72rem] mb-5">
                     ◈ Fluxo de dados — do satélite ao score
                 </p>
@@ -152,7 +152,7 @@ export default function ComoFunciona() {
                 </div>
 
                 {/* Legenda */}
-                <div className="flex gap-6 mt-4">
+                <div className="flex flex-wrap gap-4 lg:gap-6 mt-4">
                     {[
                         { label: "Orbital", cor: "#4f9eff" },
                         { label: "Analítica", cor: "#a78bfa" },
@@ -170,7 +170,7 @@ export default function ComoFunciona() {
             </section>
 
             {/* Quatro camadas */}
-            <section className="px-16 pt-12 pb-14 border-b border-[rgba(232,244,253,0.04)]">
+            <section className="px-5 lg:px-16 pt-12 pb-14 border-b border-[rgba(232,244,253,0.04)]">
                 <p className="section-kicker text-[0.72rem] mb-10">
                     ◈ As quatro camadas do sistema
                 </p>
@@ -179,13 +179,13 @@ export default function ComoFunciona() {
                     {CAMADAS.map((c, i) => (
                         <div
                             key={c.num}
-                            className="grid grid-cols-[220px_1fr_auto] gap-8 items-start py-8 transition-colors duration-200 hover:bg-[rgba(79,158,255,0.02)]"
+                            className="grid grid-cols-1 lg:grid-cols-[200px_1fr] xl:grid-cols-[220px_1fr_auto] gap-5 lg:gap-8 items-start py-8 transition-colors duration-200 hover:bg-[rgba(79,158,255,0.02)]"
                             style={{
                                 borderTop: i === 0 ? `0.5px solid rgba(232,244,253,0.06)` : undefined,
                                 borderBottom: `0.5px solid rgba(232,244,253,0.06)`,
                             }}
                         >
-                            {/* Coluna esquerda — nome */}
+                            {/* Nome da camada */}
                             <div className="flex flex-col gap-2">
                                 <span className="[font-family:var(--font-mono)] text-[0.72rem] tracking-[0.1em]" style={{ color: `${c.cor}99` }}>
                                     {c.num} —
@@ -213,13 +213,30 @@ export default function ComoFunciona() {
                                 </div>
                             </div>
 
-                            {/* Coluna central — descrição */}
+                            {/* Descrição */}
                             <p className="[font-family:var(--font-body)] text-[0.9rem] font-light leading-[1.75] text-[var(--c-muted)] pt-1">
                                 {c.descricao}
                             </p>
 
-                            {/* Coluna direita — pills */}
-                            <div className="flex flex-wrap justify-end gap-1.5 max-w-[280px] pt-1">
+                            {/* Pills — ocultas no mobile para não poluir */}
+                            <div className="hidden xl:flex flex-wrap justify-end gap-1.5 max-w-[280px] pt-1">
+                                {c.pills.map(pill => (
+                                    <span
+                                        key={pill}
+                                        className="[font-family:var(--font-mono)] text-[0.62rem] tracking-[0.08em] px-2.5 py-1 rounded-sm whitespace-nowrap"
+                                        style={{
+                                            color: c.cor,
+                                            background: `${c.cor}0d`,
+                                            border: `0.5px solid ${c.cor}35`,
+                                        }}
+                                    >
+                                        {pill}
+                                    </span>
+                                ))}
+                            </div>
+
+                            {/* Pills mobile — linha horizontal com scroll */}
+                            <div className="flex xl:hidden flex-wrap gap-1.5">
                                 {c.pills.map(pill => (
                                     <span
                                         key={pill}
@@ -240,8 +257,9 @@ export default function ComoFunciona() {
             </section>
 
             {/* Score breakdown */}
-            <section className="px-16 pt-12 pb-20 grid grid-cols-2 gap-16 items-start">
-                {/* Esquerda — texto */}
+            <section className="px-5 lg:px-16 pt-12 pb-20 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
+
+                {/* Esquerda — texto e fórmula */}
                 <div>
                     <p className="section-kicker text-[0.72rem] mb-5">
                         ◈ Como o score é calculado
@@ -255,25 +273,28 @@ export default function ComoFunciona() {
                         <em className="italic text-[var(--c-muted)]">Uma decisão.</em>
                     </h2>
                     <p className="[font-family:var(--font-body)] text-[0.9rem] font-light leading-[1.8] text-[var(--c-muted)] mb-8">
-                        O Sky Observation Score combina dados de quatro fontes distintas, cada uma com um peso específico baseado no impacto real que tem na qualidade de uma observação astronômica. O resultado é um número de 0 a 10, calculado localmente pelo ESP32 a partir do score parcial enviado pelo servidor.
+                        O Sky Observation Score usa uma fórmula híbrida com portões de corte absolutos. A base B combina o fator orbital (dados N2YO API) e o fator local (sensores ESP32). Os multiplicadores M_atm e M_lum garantem que céu nublado ou poluição extrema resultem em score baixo, independentemente dos outros fatores.
                     </p>
 
-                    {/* Fórmula */}
                     <div className="p-4 rounded-sm bg-[rgba(79,158,255,0.04)] border-[0.5px] border-[rgba(79,158,255,0.12)]">
                         <p className="[font-family:var(--font-mono)] text-[0.62rem] tracking-[0.16em] uppercase text-[rgba(79,158,255,0.5)] mb-3">
                             Fórmula híbrida
                         </p>
                         <p className="[font-family:var(--font-mono)] text-[0.78rem] text-[var(--c-muted)] leading-relaxed">
-                            B = (F_orb × 0.40) + (F_lum × 0.30)
-                            <br />
-                            {"    "}+ (F_atm × 0.20) + (F_loc × 0.10)
+                            B = (f_orbital × 0.7) + (f_local × 0.3)
                         </p>
                         <div className="border-t border-[rgba(79,158,255,0.1)] my-3" />
                         <p className="[font-family:var(--font-mono)] text-[0.78rem] text-[var(--c-muted)]">
                             Score = B × M_atm × M_lum × 10
                         </p>
-                        <p className="[font-family:var(--font-mono)] text-[0.62rem] tracking-[0.06em] text-[rgba(79,158,255,0.4)] mt-2">
-                            onde M_atm, M_lum ∈ [0.1, 1.0] — modificadores multiplicativos
+                        <div className="border-t border-[rgba(79,158,255,0.1)] my-3" />
+                        <p className="[font-family:var(--font-mono)] text-[0.7rem] text-[var(--c-muted)] leading-relaxed">
+                            Portões de corte absolutos:
+                        </p>
+                        <p className="[font-family:var(--font-mono)] text-[0.7rem] text-[rgba(255,80,80,0.7)] leading-relaxed">
+                            nuvens ≥ 85% → Score = 0.0 (céu inviável)
+                            <br />
+                            poluição ≥ 90% → Score = 1.0 (nota mínima)
                         </p>
                     </div>
                 </div>
@@ -287,7 +308,7 @@ export default function ComoFunciona() {
                                     {f.label}
                                 </p>
                                 <span className="[font-family:var(--font-mono)] text-[0.75rem] font-bold" style={{ color: f.cor }}>
-                                    {f.pct}%
+                                    {f.peso === "×" ? `× ${f.pct}%` : `${f.pct}%`}
                                 </span>
                             </div>
                             {/* Barra */}
