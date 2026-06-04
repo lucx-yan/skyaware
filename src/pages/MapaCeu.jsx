@@ -1,6 +1,207 @@
 import {useEffect, useState, useRef} from 'react'
-import {MapPin, RefreshCw, Camera, Filter} from 'lucide-react'
+import {MapPin, RefreshCw, Camera, Filter, Cpu, Thermometer, Droplets, Gauge, Eye} from 'lucide-react'
 import data from '../data/satellites.json'
+
+// TODO: substituir por fetch à Flask API quando backend estiver no ar:
+// fetch('https://darksky-fiap.duckdns.org/score').then(r => r.json()).then(d => setSensores(d.sensores))
+const SENSORES_MOCK = {
+    temperatura: 22.0,
+    umidade: 60.0,
+    pressao: 1013,
+    escuridao: 50,
+}
+
+const APIS_MOCK = {
+    fOrbital: { pct: 95, label: "Qualidade orbital · Excelente", sub: "Starlink sobre o observador (N2YO)" },
+    mAtm:     { pct: 2,  label: "Cobertura de nuvens", sub: "M_atm = 0.980" },
+    mLum:     { pct: 50, label: "Poluição luminosa", sub: "M_lum = 0.675" },
+    fLocal:   { valor: 0.520, label: "Fator local combinado", sub: "Hum + Press + LDR" },
+}
+
+// Painel de sensores
+function PainelSensores() {
+    return (
+        <div style={{
+            padding: "1.2rem 1.5rem",
+            borderBottom: "0.5px solid rgba(79, 158, 255, 0.08)",
+        }}>
+            {/* Sensores físicos ESP32 */}
+            <p style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "0.6rem",
+                letterSpacing: "0.16em",
+                textTransform: "uppercase",
+                color: "rgba(61, 255, 160, 0.6)",
+                marginBottom: "0.8rem",
+            }}>
+                Sensores ESP32 — dados físicos locais
+            </p>
+
+            <div style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "0.5rem",
+                marginBottom: "1.2rem",
+            }}>
+                {[
+                    { icon: Thermometer, label: "Temperatura", valor: `${SENSORES_MOCK.temperatura}`, unidade: "°C", cor: "var(--c-cyan)" },
+                    { icon: Droplets,   label: "Umidade",      valor: `${SENSORES_MOCK.umidade}`,     unidade: "%",  cor: "var(--c-cyan)" },
+                    { icon: Gauge,      label: "Pressão",      valor: `${SENSORES_MOCK.pressao}`,     unidade: "hPa", cor: "var(--c-cyan)" },
+                    { icon: Eye,        label: "Escuridão Local", valor: `${SENSORES_MOCK.escuridao}`, unidade: "%", cor: "var(--c-yellow)" },
+                ].map(s => {
+                    const Icone = s.icon
+                    return (
+                        <div key={s.label} style={{
+                            padding: "0.7rem 0.8rem",
+                            background: "rgba(79, 158, 255, 0.03)",
+                            border: "0.5px solid rgba(79, 158, 255, 0.08)",
+                            borderRadius: "3px",
+                        }}>
+                            <Icone size={13} color={s.cor} strokeWidth={1.5} style={{marginBottom: "0.35rem", opacity: 0.7}}/>
+                            <p style={{
+                                fontFamily: "var(--font-display)",
+                                fontSize: "1.2rem",
+                                fontWeight: 300,
+                                color: "var(--c-white)",
+                                lineHeight: 1,
+                                marginBottom: "2px",
+                            }}>
+                                {s.valor}
+                                <span style={{fontSize: "0.7rem", color: "rgba(232,244,253,0.35)", marginLeft: "2px"}}>{s.unidade}</span>
+                            </p>
+                            <p style={{
+                                fontFamily: "var(--font-mono)",
+                                fontSize: "0.55rem",
+                                letterSpacing: "0.1em",
+                                textTransform: "uppercase",
+                                color: "rgba(232, 244, 253, 0.25)",
+                            }}>
+                                {s.label}
+                            </p>
+                            {/* Barra de progresso */}
+                            <div style={{
+                                height: "2px",
+                                background: "rgba(232,244,253,0.06)",
+                                borderRadius: "1px",
+                                overflow: "hidden",
+                                marginTop: "0.4rem",
+                            }}>
+                                <div style={{
+                                    height: "100%",
+                                    width: `${Math.min(parseFloat(s.valor) / (s.unidade === "hPa" ? 1050 : 100) * 100, 100)}%`,
+                                    background: s.cor,
+                                    borderRadius: "1px",
+                                }}/>
+                            </div>
+                        </div>
+                    )
+                })}
+            </div>
+
+            {/* APIs orbitais e ambientais */}
+            <p style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "0.6rem",
+                letterSpacing: "0.16em",
+                textTransform: "uppercase",
+                color: "rgba(247, 127, 0, 0.6)",
+                marginBottom: "0.8rem",
+            }}>
+                APIs orbitais e ambientais
+            </p>
+
+            <div style={{display: "flex", flexDirection: "column", gap: "0.4rem"}}>
+                {/* N2YO f_orbital */}
+                <div style={{
+                    padding: "0.6rem 0.8rem",
+                    background: "rgba(79, 158, 255, 0.03)",
+                    border: "0.5px solid rgba(79, 158, 255, 0.1)",
+                    borderRadius: "3px",
+                }}>
+                    <div className="flex items-center justify-between" style={{marginBottom: "2px"}}>
+                        <p style={{fontFamily: "var(--font-mono)", fontSize: "0.58rem", letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(79,158,255,0.6)"}}>
+                            N2YO · F_ORBITAL (Starlink)
+                        </p>
+                        <p style={{fontFamily: "var(--font-display)", fontSize: "1rem", fontWeight: 300, color: "var(--c-green)"}}>
+                            {APIS_MOCK.fOrbital.pct}%
+                        </p>
+                    </div>
+                    <p style={{fontFamily: "var(--font-mono)", fontSize: "0.6rem", color: "rgba(232,244,253,0.3)"}}>{APIS_MOCK.fOrbital.label}</p>
+                    <p style={{fontFamily: "var(--font-mono)", fontSize: "0.58rem", color: "rgba(232,244,253,0.18)", marginTop: "1px"}}>{APIS_MOCK.fOrbital.sub}</p>
+                    <div style={{height: "2px", background: "rgba(232,244,253,0.06)", borderRadius: "1px", overflow: "hidden", marginTop: "0.4rem"}}>
+                        <div style={{height: "100%", width: `${APIS_MOCK.fOrbital.pct}%`, background: "var(--c-green)", borderRadius: "1px"}}/>
+                    </div>
+                </div>
+
+                {/* Open-Meteo M_atm */}
+                <div style={{
+                    padding: "0.6rem 0.8rem",
+                    background: "rgba(79, 158, 255, 0.03)",
+                    border: "0.5px solid rgba(79, 158, 255, 0.1)",
+                    borderRadius: "3px",
+                }}>
+                    <div className="flex items-center justify-between" style={{marginBottom: "2px"}}>
+                        <p style={{fontFamily: "var(--font-mono)", fontSize: "0.58rem", letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(79,158,255,0.6)"}}>
+                            Open-Meteo · M_ATM
+                        </p>
+                        <p style={{fontFamily: "var(--font-display)", fontSize: "1rem", fontWeight: 300, color: "var(--c-cyan)"}}>
+                            {APIS_MOCK.mAtm.pct}%
+                        </p>
+                    </div>
+                    <p style={{fontFamily: "var(--font-mono)", fontSize: "0.6rem", color: "rgba(232,244,253,0.3)"}}>{APIS_MOCK.mAtm.label}</p>
+                    <p style={{fontFamily: "var(--font-mono)", fontSize: "0.58rem", color: "rgba(232,244,253,0.18)", marginTop: "1px"}}>{APIS_MOCK.mAtm.sub}</p>
+                    <div style={{height: "2px", background: "rgba(232,244,253,0.06)", borderRadius: "1px", overflow: "hidden", marginTop: "0.4rem"}}>
+                        <div style={{height: "100%", width: `${APIS_MOCK.mAtm.pct}%`, background: "var(--c-cyan)", borderRadius: "1px"}}/>
+                    </div>
+                </div>
+
+                {/* BORTLE M_lum */}
+                <div style={{
+                    padding: "0.6rem 0.8rem",
+                    background: "rgba(79, 158, 255, 0.03)",
+                    border: "0.5px solid rgba(79, 158, 255, 0.1)",
+                    borderRadius: "3px",
+                }}>
+                    <div className="flex items-center justify-between" style={{marginBottom: "2px"}}>
+                        <p style={{fontFamily: "var(--font-mono)", fontSize: "0.58rem", letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(79,158,255,0.6)"}}>
+                            Bortle Scale · M_LUM
+                        </p>
+                        <p style={{fontFamily: "var(--font-display)", fontSize: "1rem", fontWeight: 300, color: "var(--c-yellow)"}}>
+                            {APIS_MOCK.mLum.pct}%
+                        </p>
+                    </div>
+                    <p style={{fontFamily: "var(--font-mono)", fontSize: "0.6rem", color: "rgba(232,244,253,0.3)"}}>{APIS_MOCK.mLum.label}</p>
+                    <p style={{fontFamily: "var(--font-mono)", fontSize: "0.58rem", color: "rgba(232,244,253,0.18)", marginTop: "1px"}}>{APIS_MOCK.mLum.sub}</p>
+                    <div style={{height: "2px", background: "rgba(232,244,253,0.06)", borderRadius: "1px", overflow: "hidden", marginTop: "0.4rem"}}>
+                        <div style={{height: "100%", width: `${APIS_MOCK.mLum.pct}%`, background: "var(--c-yellow)", borderRadius: "1px"}}/>
+                    </div>
+                </div>
+
+                {/* ESP32 f_local */}
+                <div style={{
+                    padding: "0.6rem 0.8rem",
+                    background: "rgba(61, 255, 160, 0.03)",
+                    border: "0.5px solid rgba(61, 255, 160, 0.1)",
+                    borderRadius: "3px",
+                }}>
+                    <div className="flex items-center justify-between" style={{marginBottom: "2px"}}>
+                        <p style={{fontFamily: "var(--font-mono)", fontSize: "0.58rem", letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(61,255,160,0.6)"}}>
+                            ESP32 · F_LOCAL
+                        </p>
+                        <p style={{fontFamily: "var(--font-display)", fontSize: "1rem", fontWeight: 300, color: "var(--c-green)"}}>
+                            {APIS_MOCK.fLocal.valor}
+                        </p>
+                    </div>
+                    <p style={{fontFamily: "var(--font-mono)", fontSize: "0.6rem", color: "rgba(232,244,253,0.3)"}}>{APIS_MOCK.fLocal.label}</p>
+                    <p style={{fontFamily: "var(--font-mono)", fontSize: "0.58rem", color: "rgba(232,244,253,0.18)", marginTop: "1px"}}>{APIS_MOCK.fLocal.sub}</p>
+                    <div style={{height: "2px", background: "rgba(232,244,253,0.06)", borderRadius: "1px", overflow: "hidden", marginTop: "0.4rem"}}>
+                        <div style={{height: "100%", width: `${APIS_MOCK.fLocal.valor * 100}%`, background: "var(--c-green)", borderRadius: "1px"}}/>
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
 
 function MapaCanvas({filtro, satellites}) {
     const canvasRef = useRef(null)
@@ -287,6 +488,8 @@ function SidebarConteudo({perfil, score, status, scoreFactors, satsVisiveis, exp
                     ))}
                 </div>
             </div>
+
+            {perfil === "profissional" && <PainelSensores />}
             
             {/* Modo Fotografia - Fotógrafo */}
             {perfil === "fotografo" && (
@@ -354,28 +557,15 @@ function SidebarConteudo({perfil, score, status, scoreFactors, satsVisiveis, exp
                             />
                         </div>
                     </div>
-                    <div style={{
-                        padding: "0.5rem 0.7rem",
-                        background: rastrosEsperados > 0 ? "rgba(255, 184, 48, 0.06)" : "rgba(61,255,160,0.04)",
-                        border: `0.5px solid ${rastrosEsperados > 0 ? "rgba(255, 184, 48, 0.2)" : "rgba(61, 255, 160, 0.15)"}`,
-                        borderRadius: "3px",
-                    }}>
-                        <p style={{
-                            fontFamily: "var(--font-mono)", 
-                            fontSize: "0.68rem",
-                            color: rastrosEsperados > 0 ? "rgba(255,184,48,0.9)" : "var(--c-green)",
-                            letterSpacing: "0.04em",
-                        }}>
-                            {rastrosEsperados > 0
-                                ? `⚠ ${rastrosEsperados} rastro(s) esperado(s) nesta janela`
-                                : "✓ Sem rastros esperados nesta janela"}
+                    <div style={{padding: "0.5rem 0.7rem", background: rastrosEsperados > 0 ? "rgba(255, 184, 48, 0.06)" : "rgba(61,255,160,0.04)", border: `0.5px solid ${rastrosEsperados > 0 ? "rgba(255, 184, 48, 0.2)" : "rgba(61, 255, 160, 0.15)"}`, borderRadius: "3px"}}>
+                        <p style={{fontFamily: "var(--font-mono)", fontSize: "0.68rem", color: rastrosEsperados > 0 ? "rgba(255,184,48,0.9)" : "var(--c-green)", letterSpacing: "0.04em"}}>
+                            {rastrosEsperados > 0 ? `⚠ ${rastrosEsperados} rastro(s) esperado(s) nesta janela` : "✓ Sem rastros esperados nesta janela"}
                         </p>
                     </div>
                 </div>
             )}
 
             {/* Satélites */}
-
             <div style={{padding: "1.2rem 1.5rem", borderBottom: "0.5px solid rgba(79, 158, 255, 0.08)"}}>
                 <p style={{
                     fontFamily: "var(--font-mono)",
@@ -401,7 +591,7 @@ function SidebarConteudo({perfil, score, status, scoreFactors, satsVisiveis, exp
                                 <p style={{
                                     fontFamily: "var(--font-mono)",
                                     fontSize: "0.7rem",
-                                    color: sat.danger ? "rgba(255, 80,  80, 0.9)" : "var(--c-white)",
+                                    color: sat.danger ? "rgba(255, 80, 80, 0.9)" : "var(--c-white)",
                                     letterSpacing: "0.04em",
                                     marginBottom: "2px",
                                 }}>
@@ -442,10 +632,7 @@ function SidebarConteudo({perfil, score, status, scoreFactors, satsVisiveis, exp
 
             {/* Modo Fotografia - outros perfis */}
             {perfil !== "fotografo" && (
-                <div style={{
-                    padding: "1.2rem 1.5rem",
-                    borderBottom: "0.5px solid rgba(79, 158, 255, 0.08)"
-                }}>
+                <div style={{padding: "1.2rem 1.5rem", borderBottom: "0.5px solid rgba(79, 158, 255, 0.08)"}}>
                     <div className='flex items-center gap-2' style={{marginBottom: "0.8rem"}}>
                         <Camera size={14.5} style={{color: "var(--c-muted)"}}/>
                         <p style={{
@@ -460,69 +647,21 @@ function SidebarConteudo({perfil, score, status, scoreFactors, satsVisiveis, exp
                     </div>
                     <div style={{display: "flex", gap: "0.5rem", marginBottom: "0.6rem"}}>
                         <div style={{flex: 1}}>
-                            <p style={{
-                                fontFamily: "var(--font-mono)", 
-                                fontSize: "0.7rem",
-                                color: "rgba(232, 244, 253, 0.25)",
-                                marginBottom: "4px",
-                            }}>
-                                Exposição (s)
-                            </p>
-                            <input type='number' value={expSeg}
-                                onChange={e => setExpSeg(Number(e.target.value))}
-                                style={{
-                                    width: "100%",
-                                    background: "rgba(232, 244, 253, 0.04)",
-                                    border: "0.5px solid rgba(232, 244, 253, 0.1)",
-                                    borderRadius: "3px",
-                                    padding: "0.4rem 0.6rem",
-                                    fontFamily: "var(--font-mono)",
-                                    fontSize: "0.65rem",
-                                    color: "var(--c-white)",
-                                    outline: "none",
-                                }}
+                            <p style={{fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: "rgba(232, 244, 253, 0.25)", marginBottom: "4px"}}>Exposição (s)</p>
+                            <input type='number' value={expSeg} onChange={e => setExpSeg(Number(e.target.value))}
+                                style={{width: "100%", background: "rgba(232, 244, 253, 0.04)", border: "0.5px solid rgba(232, 244, 253, 0.1)", borderRadius: "3px", padding: "0.4rem 0.6rem", fontFamily: "var(--font-mono)", fontSize: "0.65rem", color: "var(--c-white)", outline: "none"}}
                             />
                         </div>
                         <div style={{flex: 1}}>
-                            <p style={{
-                                fontFamily: "var(--font-mono)",
-                                fontSize: "0.7rem",
-                                color: "rgba(232, 244, 253, 0.25)",
-                                marginBottom: "4px",
-                            }}>
-                                Azimute (°)
-                            </p>
-                            <input type="number" value={azimuth}
-                                onChange={e => setAzimuth(Number(e.target.value))}
-                                style={{
-                                    width: "100%", 
-                                    background: "rgba(232,244,253,0.04)",
-                                    border: "0.5px solid rgba(232,244,253,0.1)", 
-                                    borderRadius: "3px",
-                                    padding: "0.4rem 0.6rem", 
-                                    fontFamily: "var(--font-mono)",
-                                    fontSize: "0.65rem", 
-                                    color: "var(--c-white)", 
-                                    outline: "none",
-                                }}
+                            <p style={{fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: "rgba(232, 244, 253, 0.25)", marginBottom: "4px"}}>Azimute (°)</p>
+                            <input type="number" value={azimuth} onChange={e => setAzimuth(Number(e.target.value))}
+                                style={{width: "100%", background: "rgba(232,244,253,0.04)", border: "0.5px solid rgba(232,244,253,0.1)", borderRadius: "3px", padding: "0.4rem 0.6rem", fontFamily: "var(--font-mono)", fontSize: "0.65rem", color: "var(--c-white)", outline: "none"}}
                             />
                         </div>
                     </div>
-                    <div style={{
-                        padding: "0.5rem 0.7rem",
-                        background: rastrosEsperados > 0 ? "rgba(255, 184, 48, 0.06)" : "rgba(61,255,160,0.04)",
-                        border: `0.5px solid ${rastrosEsperados > 0 ? "rgba(255, 184, 48, 0.2)" : "rgba(61, 255, 160, 0.15)"}`,
-                        borderRadius: "3px",
-                    }}>
-                        <p style={{
-                            fontFamily: "var(--font-mono)", 
-                            fontSize: "0.68rem",
-                            color: rastrosEsperados > 0 ? "rgba(255,184,48,0.9)" : "var(--c-green)",
-                            letterSpacing: "0.04em",
-                        }}>
-                            {rastrosEsperados > 0
-                                ? `⚠ ${rastrosEsperados} rastro(s) esperado(s) nesta janela`
-                                : "✓ Sem rastros esperados nesta janela"}
+                    <div style={{padding: "0.5rem 0.7rem", background: rastrosEsperados > 0 ? "rgba(255, 184, 48, 0.06)" : "rgba(61,255,160,0.04)", border: `0.5px solid ${rastrosEsperados > 0 ? "rgba(255, 184, 48, 0.2)" : "rgba(61, 255, 160, 0.15)"}`, borderRadius: "3px"}}>
+                        <p style={{fontFamily: "var(--font-mono)", fontSize: "0.68rem", color: rastrosEsperados > 0 ? "rgba(255,184,48,0.9)" : "var(--c-green)", letterSpacing: "0.04em"}}>
+                            {rastrosEsperados > 0 ? `⚠ ${rastrosEsperados} rastro(s) esperado(s) nesta janela` : "✓ Sem rastros esperados nesta janela"}
                         </p>
                     </div>
                 </div>
@@ -587,10 +726,7 @@ function LayoutMapa({perfil}) {
             }}>
                 {/* Área do mapa */}
                 <div style={{borderRight: "0.5px solid rgba(79, 158, 255, 0.1)", position: "relative"}}>
-                    <div className='flex items-center justify-between' style={{
-                        padding: "1.2rem 2rem",
-                        borderBottom: "0.5px solid rgba(79, 158, 255, 0.1)",
-                    }}>
+                    <div className='flex items-center justify-between' style={{padding: "1.2rem 2rem", borderBottom: "0.5px solid rgba(79, 158, 255, 0.1)"}}>
                         <div>
                             <p style={{
                                 fontFamily: "var(--font-display)",
@@ -600,13 +736,7 @@ function LayoutMapa({perfil}) {
                             }}>
                                 Mapa Estelar ao Vivo
                             </p>
-                            <p className='flex items-center gap-1' style={{
-                                fontFamily: "var(--font-mono)",
-                                fontSize: "0.75rem",
-                                color: "var(--c-muted)",
-                                letterSpacing: "0.04em",
-                                marginTop: "3px",
-                            }}>
+                            <p className='flex items-center gap-1' style={{fontFamily: "var(--font-mono)", fontSize: "0.75rem", color: "var(--c-muted)", letterSpacing: "0.04em", marginTop: "3px"}}>
                                 <MapPin size={14}/>
                                 {meta.location} · {meta.latitude}°S {Math.abs(meta.longitude)}°W · agora
                             </p>
@@ -615,15 +745,9 @@ function LayoutMapa({perfil}) {
                             <Filter size={19} style={{color: "var(--c-muted)"}}/>
                             {["todos", "starlink", "oneweb", "noaa"].map(f => (
                                 <button key={f} onClick={() => setFiltro(f)} style={{
-                                    fontFamily: "var(--font-mono)",
-                                    fontSize: "0.7rem",
-                                    letterSpacing: "0.08em",
-                                    textTransform: "uppercase",
-                                    padding: "3px 10px",
-                                    borderRadius: "3px",
-                                    cursor: "pointer",
-                                    border: filtro === f 
-                                        ? "0.5px solid rgba(79, 158, 255, 0.5)" : "0.5px solid rgba(232, 244, 253, 0.1)",
+                                    fontFamily: "var(--font-mono)", fontSize: "0.7rem", letterSpacing: "0.08em", textTransform: "uppercase",
+                                    padding: "3px 10px", borderRadius: "3px", cursor: "pointer",
+                                    border: filtro === f ? "0.5px solid rgba(79, 158, 255, 0.5)" : "0.5px solid rgba(232, 244, 253, 0.1)",
                                     background: filtro === f ? "rgba(79, 158, 255, 0.1)" : "transparent",
                                     color: filtro === f ? "var(--c-cyan)" : "rgba(232, 244, 253, 0.35)",
                                     transition: "all 0.2s ease",
@@ -670,11 +794,7 @@ function LayoutMapa({perfil}) {
                         }}>
                             Mapa Estelar ao Vivo
                         </p>
-                        <p style={{
-                            fontFamily: "var(--font-mono)",
-                            fontSize: "0.65rem",
-                            color: "var(--c-muted)",
-                        }}>
+                        <p style={{fontFamily: "var(--font-mono)", fontSize: "0.65rem", color: "var(--c-muted)"}}>
                             {meta.location} · agora
                         </p>
                     </div>
@@ -734,21 +854,8 @@ function LayoutMapa({perfil}) {
                             {score}<span style={{fontSize: "1.2rem", color: "rgba(232,244,253,0.22)"}}>/10</span>
                         </p>
                         <div className='flex items-center gap-2' style={{marginTop: "0.4rem"}}>
-                            <span style={{
-                                width: 5,
-                                height: 5,
-                                borderRadius: "50%",
-                                background: status.color,
-                                boxShadow: `0 0 5px ${status.color}`,
-                                display: "inline-block",
-                            }}/>
-                            <span style={{
-                                fontFamily: "var(--font-body)",
-                                fontSize: "0.7rem",
-                                letterSpacing: "0.06em",
-                                textTransform: "uppercase",
-                                color: status.color,
-                            }}>
+                            <span style={{width: 5, height: 5, borderRadius: "50%", background: status.color, boxShadow: `0 0 5px ${status.color}`, display: "inline-block"}}/>
+                            <span style={{fontFamily: "var(--font-body)", fontSize: "0.7rem", letterSpacing: "0.06em", textTransform: "uppercase", color: status.color}}>
                                 {status.label}
                             </span>
                         </div>
@@ -761,41 +868,53 @@ function LayoutMapa({perfil}) {
                             {label: "ESP32", value: scoreFactors.local.value, color: "var(--c-green)"},
                         ].map(f => (
                             <div key={f.label} className='flex items-center gap-2'>
-                                <p style={{
-                                    fontFamily: "var(--font-mono)",
-                                    fontSize: "0.58rem",
-                                    color: "rgba(232, 244, 253, 0.3)",
-                                    minWidth: "42px",
-                                }}>
-                                    {f.label}
-                                </p>
-                                <div style={{
-                                    flex: 1,
-                                    height: "2px",
-                                    background: "rgba(232, 244, 253, 0.06)",
-                                    borderRadius: "1px",
-                                    overflow: "hidden",
-                                }}>
-                                    <div style={{
-                                        height: "100%",
-                                        width: `${(f.value / 10) * 100}%`,
-                                        background: f.color,
-                                        borderRadius: "1px",
-                                    }}/>
+                                <p style={{fontFamily: "var(--font-mono)", fontSize: "0.58rem", color: "rgba(232, 244, 253, 0.3)", minWidth: "42px"}}>{f.label}</p>
+                                <div style={{flex: 1, height: "2px", background: "rgba(232, 244, 253, 0.06)", borderRadius: "1px", overflow: "hidden"}}>
+                                    <div style={{height: "100%", width: `${(f.value / 10) * 100}%`, background: f.color, borderRadius: "1px"}}/>
                                 </div>
-                                <p style={{
-                                    fontFamily: "var(--font-mono)",
-                                    fontSize: "0.6rem",
-                                    color: "rgba(232, 244, 253, 0.4)",
-                                    minWidth: "24px",
-                                    textAlign: "right",
-                                }}>
-                                    {f.value}
-                                </p>
+                                <p style={{fontFamily: "var(--font-mono)", fontSize: "0.6rem", color: "rgba(232, 244, 253, 0.4)", minWidth: "24px", textAlign: "right"}}>{f.value}</p>
                             </div>
                         ))}
                     </div>
                 </div>
+
+                {/* Painel ESP32 mobile */}
+                {perfil === "profissional" && (
+                    <div style={{padding: "1.2rem 1.5rem", borderBottom: "0.5px solid rgba(79, 158, 255, 0.08)"}}>
+                        <div className='flex items-center gap-2' style={{marginBottom: "0.8rem"}}>
+                            <Cpu size={13} color="var(--c-green)" strokeWidth={1.5}/>
+                            <p style={{fontFamily: "var(--font-mono)", fontSize: "0.62rem", letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(61, 255, 160, 0.6)"}}>
+                                Sensores ESP32
+                            </p>
+                        </div>
+                        <div style={{display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.4rem", marginBottom: "0.8rem"}}>
+                            {[
+                                {label: "Temperatura", valor: `${SENSORES_MOCK.temperatura}°C`, cor: "var(--c-cyan)"},
+                                {label: "Umidade", valor: `${SENSORES_MOCK.umidade}%`, cor: "var(--c-cyan)"},
+                                {label: "Pressão", valor: `${SENSORES_MOCK.pressao}hPa`, cor: "var(--c-cyan)"},
+                                {label: "Escuridão", valor: `${SENSORES_MOCK.escuridao}%`, cor: "var(--c-yellow)"},
+                            ].map(s => (
+                                <div key={s.label} style={{padding: "0.5rem 0.7rem", background: "rgba(79,158,255,0.03)", border: "0.5px solid rgba(79,158,255,0.08)", borderRadius: "3px"}}>
+                                    <p style={{fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: s.cor, fontWeight: "bold"}}>{s.valor}</p>
+                                    <p style={{fontFamily: "var(--font-mono)", fontSize: "0.55rem", color: "rgba(232,244,253,0.25)", textTransform: "uppercase", letterSpacing: "0.08em"}}>{s.label}</p>
+                                </div>
+                            ))}
+                        </div>
+                        <div style={{display: "flex", flexDirection: "column", gap: "0.35rem"}}>
+                            {[
+                                {label: "N2YO f_orbital", valor: `${APIS_MOCK.fOrbital.pct}%`, cor: "var(--c-green)"},
+                                {label: "Open-Meteo M_atm", valor: `${APIS_MOCK.mAtm.pct}%`, cor: "var(--c-cyan)"},
+                                {label: "Bortle M_lum", valor: `${APIS_MOCK.mLum.pct}%`, cor: "var(--c-yellow)"},
+                                {label: "ESP32 f_local", valor: `${APIS_MOCK.fLocal.valor}`, cor: "var(--c-green)"},
+                            ].map(a => (
+                                <div key={a.label} className='flex items-center justify-between'>
+                                    <p style={{fontFamily: "var(--font-mono)", fontSize: "0.62rem", color: "rgba(232,244,253,0.3)"}}>{a.label}</p>
+                                    <p style={{fontFamily: "var(--font-mono)", fontSize: "0.68rem", color: a.cor, fontWeight: "bold"}}>{a.valor}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
                 
                 {/* Modo Fotografia - Fotógrafo */}
                 {perfil === "fotografo" && (
@@ -815,20 +934,14 @@ function LayoutMapa({perfil}) {
                         </div>
                         <div style={{display: "flex", gap: "0.5rem", marginBottom: "0.6rem"}}>
                             <div style={{flex: 1}}>
-                                <p style={{fontFamily: "var(--font-mono)", fontSize: "0.62rem", color: "rgba(232,244,253,0.25)", marginBottom: "4px"}}>
-                                    Exposição (s)
-                                </p>
-                                <input type='number' value={expSeg}
-                                    onChange={e => setExpSeg(Number(e.target.value))}
+                                <p style={{fontFamily: "var(--font-mono)", fontSize: "0.62rem", color: "rgba(232,244,253,0.25)", marginBottom: "4px"}}>Exposição (s)</p>
+                                <input type='number' value={expSeg} onChange={e => setExpSeg(Number(e.target.value))}
                                     style={{width: "100%", background: "rgba(232,244,253,0.04)", border: "0.5px solid rgba(232,244,253,0.1)", borderRadius: "3px", padding: "0.4rem 0.6rem", fontFamily: "var(--font-mono)", fontSize: "0.72rem", color: "var(--c-white)", outline: "none"}}
                                 />
                             </div>
                             <div style={{flex: 1}}>
-                                <p style={{fontFamily: "var(--font-mono)", fontSize: "0.62rem", color: "rgba(232,244,253,0.25)", marginBottom: "4px"}}>
-                                    Azimute (°)
-                                </p>
-                                <input type='number' value={azimuth}
-                                    onChange={e => setAzimuth(Number(e.target.value))}
+                                <p style={{fontFamily: "var(--font-mono)", fontSize: "0.62rem", color: "rgba(232,244,253,0.25)", marginBottom: "4px"}}>Azimute (°)</p>
+                                <input type='number' value={azimuth} onChange={e => setAzimuth(Number(e.target.value))}
                                     style={{width: "100%", background: "rgba(232,244,253,0.04)", border: "0.5px solid rgba(232,244,253,0.1)", borderRadius: "3px", padding: "0.4rem 0.6rem", fontFamily: "var(--font-mono)", fontSize: "0.72rem", color: "var(--c-white)", outline: "none"}}
                                 />
                             </div>
@@ -903,7 +1016,7 @@ function LayoutMapa({perfil}) {
                     </div>
                 </div>
 
-                {/* Modo Fotografia - outros perfis*/}
+                {/* Modo Fotografia - outros perfis */}
                 {perfil !== "fotografo" && (
                     <div style={{padding: "1.2rem 1.5rem"}}>
                         <div className='flex items-center gap-2' style={{marginBottom: "0.8rem"}}>
@@ -920,68 +1033,21 @@ function LayoutMapa({perfil}) {
                         </div>
                         <div style={{display: "flex", gap: "0.5rem", marginBottom: "0.6rem"}}>
                             <div style={{flex: 1}}>
-                                <p style={{
-                                    fontFamily: "var(--font-mono)",
-                                    fontSize: "0.62rem",
-                                    color: "rgba(232, 244, 253, 0.25)",
-                                    marginBottom: "4px",
-                                }}>
-                                    Exposição (s)
-                                </p>
-                                <input type='number' value={expSeg}
-                                    onChange={e => setExpSeg(Number(e.target.value))}
-                                    style={{
-                                        width: "100%",
-                                        background: "rgba(232, 244, 253, 0.04)",
-                                        border: "0.5px solid rgba(232, 244, 253, 0.1)",
-                                        borderRadius: "3px",
-                                        padding: "0.4rem 0.6rem",
-                                        fontFamily: "var(--font-mono)",
-                                        fontSize: "0.72rem",
-                                        color: "var(--c-white)",
-                                        outline: "none",
-                                    }}
+                                <p style={{fontFamily: "var(--font-mono)", fontSize: "0.62rem", color: "rgba(232, 244, 253, 0.25)", marginBottom: "4px"}}>Exposição (s)</p>
+                                <input type='number' value={expSeg} onChange={e => setExpSeg(Number(e.target.value))}
+                                    style={{width: "100%", background: "rgba(232, 244, 253, 0.04)", border: "0.5px solid rgba(232, 244, 253, 0.1)", borderRadius: "3px", padding: "0.4rem 0.6rem", fontFamily: "var(--font-mono)", fontSize: "0.72rem", color: "var(--c-white)", outline: "none"}}
                                 />
                             </div>
                             <div style={{flex: 1}}>
-                                <p style={{
-                                    fontFamily: "var(--font-mono)",
-                                    fontSize: "0.62rem",
-                                    color: "rgba(232, 244, 253, 0.25)",
-                                    marginBottom: "4px",
-                                }}>
-                                    Azimute (°)
-                                </p>
-                                <input type='number' value={azimuth}
-                                    onChange={e => setAzimuth(Number(e.target.value))}
-                                    style={{
-                                        width: "100%",
-                                        background: "rgba(232, 244, 253, 0.04)",
-                                        border: "0.5px solid rgba(232, 244, 253, 0.1)",
-                                        borderRadius: "3px",
-                                        padding: "0.4rem 0.6rem",
-                                        fontFamily: "var(--font-mono)",
-                                        fontSize: "0.72rem",
-                                        color: "var(--c-white)",
-                                        outline: "none",
-                                    }}
+                                <p style={{fontFamily: "var(--font-mono)", fontSize: "0.62rem", color: "rgba(232, 244, 253, 0.25)", marginBottom: "4px"}}>Azimute (°)</p>
+                                <input type='number' value={azimuth} onChange={e => setAzimuth(Number(e.target.value))}
+                                    style={{width: "100%", background: "rgba(232, 244, 253, 0.04)", border: "0.5px solid rgba(232, 244, 253, 0.1)", borderRadius: "3px", padding: "0.4rem 0.6rem", fontFamily: "var(--font-mono)", fontSize: "0.72rem", color: "var(--c-white)", outline: "none"}}
                                 />
                             </div>
                         </div>
-                        <div style={{
-                            padding: "0.5rem 0.7rem",
-                            background: rastrosEsperados > 0 ? "rgba(255, 184, 48, 0.06)" : "rgba(61, 255, 160, 0.04)",
-                            border: `0.5px solid ${rastrosEsperados > 0 ? "rgba(255, 184, 48, 0.2)" : "rgba(61, 255, 160, 0.15)"}`,
-                            borderRadius: "3px",
-                        }}>
-                            <p style={{
-                                fontFamily: "var(--font-mono)",
-                                fontSize: "0.68rem",
-                                color: rastrosEsperados > 0 ? "rgba(255, 184, 48, 0.8)" : "var(--c-green)",
-                            }}>
-                                {rastrosEsperados > 0
-                                    ? `⚠ ${rastrosEsperados} rastro(s) esperado(s) nesta janela`
-                                    : "✓ Sem rastros esperados nesta janela"}
+                        <div style={{padding: "0.5rem 0.7rem", background: rastrosEsperados > 0 ? "rgba(255, 184, 48, 0.06)" : "rgba(61, 255, 160, 0.04)", border: `0.5px solid ${rastrosEsperados > 0 ? "rgba(255, 184, 48, 0.2)" : "rgba(61, 255, 160, 0.15)"}`, borderRadius: "3px"}}>
+                            <p style={{fontFamily: "var(--font-mono)", fontSize: "0.68rem", color: rastrosEsperados > 0 ? "rgba(255, 184, 48, 0.8)" : "var(--c-green)"}}>
+                                {rastrosEsperados > 0 ? `⚠ ${rastrosEsperados} rastro(s) esperado(s) nesta janela` : "✓ Sem rastros esperados nesta janela"}
                             </p>
                         </div>
                     </div>
