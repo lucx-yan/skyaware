@@ -1,6 +1,266 @@
-import { useState } from "react";
-import { MapPin, Bell, AlertTriangle, CheckCircle, Clock } from "lucide-react";
+import { useState, useEffect, useRef } from "react"
+import { MapPin, Bell, AlertTriangle, CheckCircle, Clock } from "lucide-react"
 import data from "../data/satellites.json"
+
+// TODO: substituir por fetch à Flask API quando backend estiver no ar:
+// fetch('https://darksky-fiap.duckdns.org/history?limit=200')
+//   .then(r => r.json()).then(d => setHistorico(d))
+// Formato esperado da API: [{ ts: "21:00", score: 8.4 }, ...]
+const HISTORICO_MOCK = [
+    { ts: "21:00", score: 8.4 }, { ts: "21:05", score: 8.3 },
+    { ts: "21:10", score: 8.5 }, { ts: "21:15", score: 7.8 },
+    { ts: "21:20", score: 7.6 }, { ts: "21:25", score: 7.7 },
+    { ts: "21:30", score: 7.5 }, { ts: "21:35", score: 7.6 },
+    { ts: "21:40", score: 7.8 }, { ts: "21:45", score: 7.4 },
+    { ts: "21:50", score: 7.3 }, { ts: "21:55", score: 7.5 },
+    { ts: "22:00", score: 7.6 }, { ts: "22:05", score: 7.7 },
+    { ts: "22:10", score: 7.4 }, { ts: "22:15", score: 7.2 },
+    { ts: "22:20", score: 4.3 }, { ts: "22:25", score: 3.6 },
+    { ts: "22:30", score: 3.4 }, { ts: "22:35", score: 3.5 },
+    { ts: "22:40", score: 4.2 }, { ts: "22:45", score: 4.8 },
+    { ts: "22:50", score: 8.4 }, { ts: "22:55", score: 8.5 },
+    { ts: "23:00", score: 8.4 }, { ts: "23:05", score: 8.3 },
+    { ts: "23:10", score: 8.5 }, { ts: "23:15", score: 8.4 },
+    { ts: "23:20", score: 8.3 }, { ts: "23:25", score: 8.4 },
+    { ts: "23:30", score: 8.5 }, { ts: "23:35", score: 8.4 },
+    { ts: "23:40", score: 9.0 }, { ts: "23:45", score: 8.9 },
+    { ts: "23:50", score: 2.3 }, { ts: "23:55", score: 1.8 },
+    { ts: "00:00", score: 1.6 }, { ts: "00:05", score: 2.2 },
+    { ts: "00:10", score: 1.9 }, { ts: "00:15", score: 1.4 },
+    { ts: "00:20", score: 1.2 }, { ts: "00:25", score: 1.8 },
+    { ts: "00:30", score: 3.5 }, { ts: "00:35", score: 7.0 },
+    { ts: "00:40", score: 6.9 }, { ts: "00:45", score: 7.5 },
+    { ts: "00:50", score: 7.8 }, { ts: "00:55", score: 0.8 },
+    { ts: "01:00", score: 0.4 }, { ts: "01:05", score: 1.6 },
+    { ts: "01:10", score: 3.5 }, { ts: "01:15", score: 5.0 },
+    { ts: "01:20", score: 6.8 }, { ts: "01:25", score: 5.7 },
+    { ts: "01:30", score: 5.5 }, { ts: "01:35", score: 6.1 },
+    { ts: "01:40", score: 5.9 }, { ts: "01:45", score: 5.8 },
+    { ts: "01:50", score: 6.0 }, { ts: "01:55", score: 5.7 },
+]
+
+// Gráfico
+function GraficoHistorico({ perfil }) {
+    const containerRef = useRef(null)
+    const [tooltip, setTooltip] = useState(null)
+    const [largura, setLargura] = useState(800)
+
+    // Labels do eixo X
+    const labelsX = HISTORICO_MOCK
+        .map((p, i) => ({ ts: p.ts, i }))
+        .filter((_, i) => i % 6 === 0)
+
+    useEffect(() => {
+        if (!containerRef.current) return
+        const obs = new ResizeObserver(entries => {
+            setLargura(entries[0].contentRect.width)
+        })
+        obs.observe(containerRef.current)
+        return () => obs.disconnect()
+    }, [])
+
+    const PAD  = { top: 20, right: 20, bottom: 36, left: 36 }
+    const H    = 180
+    const W    = largura
+    const iW   = W - PAD.left - PAD.right
+    const iH   = H - PAD.top  - PAD.bottom
+    const n    = HISTORICO_MOCK.length
+
+    function xPos(i) { return PAD.left + (i / (n - 1)) * iW }
+    function yPos(s) { return PAD.top  + iH - (s / 10) * iH }
+
+    // Caminho SVG da linha
+    const path = HISTORICO_MOCK.map((p, i) =>
+        `${i === 0 ? "M" : "L"} ${xPos(i).toFixed(1)} ${yPos(p.score).toFixed(1)}`
+    ).join(" ")
+
+    // Área preenchida abaixo da linha
+    const area = `${path} L ${xPos(n - 1).toFixed(1)} ${(PAD.top + iH).toFixed(1)} L ${PAD.left.toFixed(1)} ${(PAD.top + iH).toFixed(1)} Z`
+
+    function scoreCor(s) {
+        if (s >= 7) return "#3dffa0"
+        if (s >= 4) return "#ffd166"
+        return "#ff5050"
+    }
+
+    return (
+        <div style={{ marginBottom: "4rem" }}>
+            {/* Header */}
+            <div style={{
+                display: "flex",
+                alignItems: "baseline",
+                justifyContent: "space-between",
+                marginBottom: "1rem",
+                paddingBottom: "1rem",
+                borderBottom: "0.5px solid rgba(232, 244, 253, 0.05)",
+            }}>
+                <div style={{ display: "flex", alignItems: "baseline", gap: "1rem" }}>
+                    <p className="section-kicker" style={{ opacity: 1, fontSize: "0.8rem" }}>
+                        Histórico — Sky Observation Score
+                    </p>
+                    <p style={{ fontFamily: "var(--font-mono)", fontSize: "0.68rem", letterSpacing: "0.06em", color: "rgba(232,244,253,0.2)" }}>
+                        // SQLite · evolução do score na sessão
+                    </p>
+                </div>
+                <p style={{ fontFamily: "var(--font-mono)", fontSize: "0.68rem", color: "rgba(232,244,253,0.2)" }}>
+                    {HISTORICO_MOCK.length} pontos
+                </p>
+            </div>
+
+            {/* Gráfico SVG */}
+            <div
+                ref={containerRef}
+                style={{
+                    width: "100%",
+                    position: "relative",
+                    background: "rgba(3, 5, 12, 0.6)",
+                    border: "0.5px solid rgba(79, 158, 255, 0.08)",
+                    borderRadius: "4px",
+                    overflow: "hidden",
+                    userSelect: "none",
+                }}
+            >
+                <svg
+                    width="100%"
+                    height={H}
+                    viewBox={`0 0 ${W} ${H}`}
+                    preserveAspectRatio="none"
+                    onMouseMove={e => {
+                        const rect = e.currentTarget.getBoundingClientRect()
+                        const mouseX = (e.clientX - rect.left) * (W / rect.width)
+                        const idx = Math.round(((mouseX - PAD.left) / iW) * (n - 1))
+                        if (idx >= 0 && idx < n) setTooltip({ idx, x: mouseX })
+                    }}
+                    onMouseLeave={() => setTooltip(null)}
+                >
+                    <defs>
+                        <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="rgba(79,158,255,0.15)" />
+                            <stop offset="100%" stopColor="rgba(79,158,255,0)" />
+                        </linearGradient>
+                    </defs>
+
+                    {/* Linhas guia horizontais */}
+                    {[0, 4, 7, 10].map(v => (
+                        <g key={v}>
+                            <line
+                                x1={PAD.left} y1={yPos(v)}
+                                x2={W - PAD.right} y2={yPos(v)}
+                                stroke={v === 7 ? "rgba(61,255,160,0.1)" : v === 4 ? "rgba(255,209,102,0.1)" : "rgba(232,244,253,0.05)"}
+                                strokeWidth={0.5}
+                                strokeDasharray={v === 0 || v === 10 ? "none" : "4 4"}
+                            />
+                            <text
+                                x={PAD.left - 6} y={yPos(v) + 4}
+                                textAnchor="end"
+                                fontSize={9}
+                                fill="rgba(232,244,253,0.2)"
+                                fontFamily="Space Mono, monospace"
+                            >
+                                {v}
+                            </text>
+                        </g>
+                    ))}
+
+                    {/* Área */}
+                    <path d={area} fill="url(#areaGrad)" />
+
+                    {/* Linha */}
+                    <path
+                        d={path}
+                        fill="none"
+                        stroke="rgba(79,158,255,0.7)"
+                        strokeWidth={1.5}
+                        strokeLinejoin="round"
+                        strokeLinecap="round"
+                    />
+
+                    {/* Pontos */}
+                    {HISTORICO_MOCK.map((p, i) => (
+                        <circle
+                            key={i}
+                            cx={xPos(i)}
+                            cy={yPos(p.score)}
+                            r={tooltip?.idx === i ? 4 : 2.5}
+                            fill={scoreCor(p.score)}
+                            opacity={tooltip?.idx === i ? 1 : 0.7}
+                        />
+                    ))}
+
+                    {/* Labels eixo X */}
+                    {labelsX.map(({ ts, i }) => (
+                        <text
+                            key={ts}
+                            x={xPos(i)}
+                            y={H - 6}
+                            textAnchor="middle"
+                            fontSize={9}
+                            fill="rgba(232,244,253,0.2)"
+                            fontFamily="Space Mono, monospace"
+                        >
+                            {ts}
+                        </text>
+                    ))}
+
+                    {/* Linha vertical do tooltip */}
+                    {tooltip && (
+                        <line
+                            x1={xPos(tooltip.idx)} y1={PAD.top}
+                            x2={xPos(tooltip.idx)} y2={PAD.top + iH}
+                            stroke="rgba(79,158,255,0.3)"
+                            strokeWidth={1}
+                            strokeDasharray="3 3"
+                        />
+                    )}
+                </svg>
+
+                {/* Tooltip flutuante */}
+                {tooltip && (() => {
+                    const p = HISTORICO_MOCK[tooltip.idx]
+                    const cor = scoreCor(p.score)
+                    const left = Math.min(Math.max(tooltip.x / W * 100, 8), 88)
+                    return (
+                        <div style={{
+                            position: "absolute",
+                            top: "8px",
+                            left: `${left}%`,
+                            transform: "translateX(-50%)",
+                            background: "rgba(3,5,12,0.95)",
+                            border: `0.5px solid ${cor}40`,
+                            borderRadius: "3px",
+                            padding: "0.35rem 0.6rem",
+                            pointerEvents: "none",
+                            whiteSpace: "nowrap",
+                        }}>
+                            <p style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: cor, fontWeight: "bold" }}>
+                                {p.score.toFixed(1)}
+                            </p>
+                            <p style={{ fontFamily: "var(--font-mono)", fontSize: "0.6rem", color: "rgba(232,244,253,0.4)" }}>
+                                {p.ts}
+                            </p>
+                        </div>
+                    )
+                })()}
+            </div>
+
+            {/* Legenda */}
+            <div className="flex gap-4" style={{ marginTop: "0.6rem" }}>
+                {[
+                    { cor: "#3dffa0", label: "Ideal (≥7)" },
+                    { cor: "#ffd166", label: "Moderado (4–7)" },
+                    { cor: "#ff5050", label: "Interferência (<4)" },
+                ].map(l => (
+                    <div key={l.label} className="flex items-center gap-1.5">
+                        <span style={{ width: 8, height: 8, borderRadius: "50%", background: l.cor, display: "inline-block" }} />
+                        <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.6rem", color: "rgba(232,244,253,0.3)", letterSpacing: "0.06em" }}>
+                            {l.label}
+                        </span>
+                    </div>
+                ))}
+            </div>
+        </div>
+    )
+}
 
 const ALERTAS_DATA = {
     amador: [
@@ -157,10 +417,10 @@ function AlertaCard({alerta}) {
 
             <p style={{
                 fontFamily: "var(--font-body)",
-                fontSize:   "0.85rem",
+                fontSize: "0.85rem",
                 fontWeight: 300,
                 lineHeight: 1.65,
-                color:      "var(--c-muted)",
+                color: "var(--c-muted)",
             }}>
                 {alerta.descricao}
             </p>
@@ -190,7 +450,7 @@ function JanelasObservacao({perfil}) {
                 display: "flex",
                 alignItems: "baseline",
                 gap: "1rem",
-                marginBottom: "1,5rem",
+                marginBottom: "1.5rem",
                 paddingBottom: "1rem",
                 borderBottom: "0.5px solid rgba(232, 244, 253, 0.05)",
             }}>
@@ -376,6 +636,8 @@ function PainelSimulacao() {
     const [orbital, setOrbital] = useState(82)
     const [simulado, setSimulado] = useState(null)
 
+    useEffect(() => { calcular() }, [nuvens, poluicao, orbital])
+
     function calcular() {
         const f_orbital = orbital / 100
         const f_local = scoreFactors.local.value
@@ -452,7 +714,7 @@ function PainelSimulacao() {
                 {[
                     {label: "Cobertura de nuvens", value: nuvens, set: setNuvens, unit: "%", min: 0, max: 100, cor: "var(--c-cyan)"},
                     {label: "Poluição luminosa", value: poluicao, set: setPoluicao, unit: "%", min: 0, max: 100, cor: "var(--c-yellow)"},
-                    {label: "f_orbital", value: orbital,  set: setOrbital, unit: "%", min: 0, max: 100, cor: "var(--c-green)"},
+                    {label: "f_orbital", value: orbital, set: setOrbital, unit: "%", min: 0, max: 100, cor: "var(--c-green)"},
                 ].map((param, i) => (
                     <div key={i}>
                         <div className="flex items-center justify-between" style={{marginBottom: "0.5rem"}}>
@@ -465,12 +727,7 @@ function PainelSimulacao() {
                             }}>
                                 {param.label}
                             </p>
-                            <p style={{
-                                fontFamily:  "var(--font-mono)",
-                                fontSize: "0.8rem",
-                                color: param.cor,
-                                fontWeight: "bold",
-                            }}>
+                            <p style={{fontFamily: "var(--font-mono)", fontSize: "0.8rem", color: param.cor, fontWeight: "bold"}}>
                                 {param.value}{param.unit}
                             </p>
                         </div>
@@ -495,9 +752,6 @@ function PainelSimulacao() {
             </div>
 
             <div className="flex gap-3" style={{marginBottom: "1.5rem"}}>
-                <button onClick={calcular} className="btn-primary">
-                    Calcular Score →
-                </button>
                 <button onClick={resetar} className="btn-ghost">
                     Resetar
                 </button>
@@ -512,12 +766,7 @@ function PainelSimulacao() {
                     borderRadius: "3px",
                 }}>
                     {simulado.motivo ? (
-                        <p style={{
-                            fontFamily: "var(--font-mono)",
-                            fontSize: "0.75rem",
-                            color: scoreCor,
-                            letterSpacing: "0.04em",
-                        }}>
+                        <p style={{fontFamily: "var(--font-mono)", fontSize: "0.75rem", color: scoreCor, letterSpacing: "0.04em"}}>
                             Score = {simulado.score.toFixed(1)} · {simulado.motivo}
                         </p>
                     ) : (
@@ -628,22 +877,8 @@ export default function Alertas({perfil}) {
                             </p>    
                         </div>
                         <div className="flex items-center gap-2">
-                            <span style={{
-                                width: 6.5,
-                                height: 6.5,
-                                borderRadius: "50%",
-                                background: "var(--c-green)",
-                                boxShadow: "0 0 5px var(--c-green)",
-                                display: "inline-block",
-                                animation: "blink 2s infinite",
-                            }}/>
-                            <p style={{
-                                fontFamily: "var(--font-mono)",
-                                fontSize: "0.7rem",
-                                color: "rgba(232, 244, 253, 0.25)",
-                                letterSpacing: "0.06em",
-                                textTransform: "uppercase",
-                            }}>
+                            <span style={{width: 6.5, height: 6.5, borderRadius: "50%", background: "var(--c-green)", boxShadow: "0 0 5px var(--c-green)", display: "inline-block", animation: "blink 2s infinite"}}/>
+                            <p style={{fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: "rgba(232, 244, 253, 0.25)", letterSpacing: "0.06em", textTransform: "uppercase"}}>
                                 Score atual: {score}/10
                             </p>
                         </div>
@@ -663,6 +898,8 @@ export default function Alertas({perfil}) {
             </div>
 
             <JanelasObservacao perfil={perfil}/>
+
+            <GraficoHistorico perfil={perfil} />
 
             {perfil === "profissional" && <PainelSimulacao/>}
         </div>

@@ -1,0 +1,213 @@
+{
+  "timestamp": "2026-06-03T13:52:19.026374+00:00",
+  "sky_observation_score": 0.0,
+  "classificacao": "INTERFERÊNCIA",
+  "fatores": {
+    "M_atm": 0.11,
+    "M_lum": 0.87,
+    "sensores_esp32": {
+      "luminosidade_lux": 0.99,
+      "umidade_pct": 74.0,
+      "pressao_hpa": 922.9,
+      "fonte": "Open-Meteo (real)"
+    }
+  },
+  "satelites": [
+    {
+      "nome": "STARLINK-3500",
+      "inclinacao": 53.1864,
+      "periodo": 95.44,
+      "leo": true,
+      "impacto": "ALTO",
+      "latitude": -50.44,
+      "longitude": -121.5,
+      "altitude": 552.3
+    },
+    {
+      "nome": "STARLINK-4000",
+      "inclinacao": 53.1877,
+      "periodo": 95.44,
+      "leo": true,
+      "impacto": "ALTO",
+      "latitude": -32.31,
+      "longitude": -83.19,
+      "altitude": 551.6
+    },
+    {
+      "nome": "STARLINK-1204",
+      "inclinacao": 53.1494,
+      "periodo": 92.61,
+      "leo": true,
+      "impacto": "ALTO",
+      "latitude": -52.79,
+      "longitude": 104.37,
+      "altitude": 414.5
+    },
+    {
+      "nome": "STARLINK-4041",
+      "inclinacao": 41.4697,
+      "periodo": 92.3,
+      "leo": true,
+      "impacto": "MÉDIO",
+      "latitude": -27.52,
+      "longitude": -99.05,
+      "altitude": 399.0
+    },
+    {
+      "nome": "STARLINK-5523",
+      "inclinacao": 69.9995,
+      "periodo": 96.11,
+      "leo": true,
+      "impacto": "ALTO",
+      "latitude": 23.09,
+      "longitude": 17.0,
+      "altitude": 578.8
+    }
+  ],
+  "janelas_12h": [
+    {
+      "horario": "13:51",
+      "score": 2.16,
+      "classificacao": "INTERFERÊNCIA",
+      "sat_visiveis": 5
+    },
+    {
+      "horario": "14:21",
+      "score": 1.7,
+      "classificacao": "INTERFERÊNCIA",
+      "sat_visiveis": 3
+    },
+    {
+      "horario": "14:51",
+      "score": 3.54,
+      "classificacao": "INTERFERÊNCIA",
+      "sat_visiveis": 7
+    },
+    {
+      "horario": "15:21",
+      "score": 3.68,
+      "classificacao": "INTERFERÊNCIA",
+      "sat_visiveis": 4
+    },
+    {
+      "horario": "15:51",
+      "score": 3.48,
+      "classificacao": "INTERFERÊNCIA",
+      "sat_visiveis": 4
+    },
+    {
+      "horario": "16:21",
+      "score": 0.81,
+      "classificacao": "INTERFERÊNCIA",
+      "sat_visiveis": 5
+    },
+    {
+      "horario": "16:51",
+      "score": 2.9,
+      "classificacao": "INTERFERÊNCIA",
+      "sat_visiveis": 7
+    },
+    {
+      "horario": "17:21",
+      "score": 2.65,
+      "classificacao": "INTERFERÊNCIA",
+      "sat_visiveis": 7
+    },
+    {
+      "horario": "17:51",
+      "score": 1.38,
+      "classificacao": "INTERFERÊNCIA",
+      "sat_visiveis": 3
+    },
+    {
+      "horario": "18:21",
+      "score": 1.39,
+      "classificacao": "INTERFERÊNCIA",
+      "sat_visiveis": 7
+    },
+    {
+      "horario": "18:51",
+      "score": 1.68,
+      "classificacao": "INTERFERÊNCIA",
+      "sat_visiveis": 5
+    },
+    {
+      "horario": "19:21",
+      "score": 1.61,
+      "classificacao": "INTERFERÊNCIA",
+      "sat_visiveis": 6
+    },
+    {
+      "horario": "19:51",
+      "score": 1.93,
+      "classificacao": "INTERFERÊNCIA",
+      "sat_visiveis": 3
+    },
+    {
+      "horario": "20:21",
+      "score": 3.57,
+      "classificacao": "INTERFERÊNCIA",
+      "sat_visiveis": 3
+    },
+    {
+      "horario": "20:51",
+      "score": 4.94,
+      "classificacao": "MODERADO",
+      "sat_visiveis": 7
+    },
+    {
+      "horario": "21:21",
+      "score": 5.02,
+      "classificacao": "MODERADO",
+      "sat_visiveis": 4
+    },
+    {
+      "horario": "21:51",
+      "score": 3.17,
+      "classificacao": "INTERFERÊNCIA",
+      "sat_visiveis": 3
+    },
+    {
+      "horario": "22:21",
+      "score": 1.86,
+      "classificacao": "INTERFERÊNCIA",
+      "sat_visiveis": 3
+    },
+    {
+      "horario": "22:51",
+      "score": 1.38,
+      "classificacao": "INTERFERÊNCIA",
+      "sat_visiveis": 4
+    },
+    {
+      "horario": "23:21",
+      "score": 2.62,
+      "classificacao": "INTERFERÊNCIA",
+      "sat_visiveis": 5
+    },
+    {
+      "horario": "23:51",
+      "score": 2.96,
+      "classificacao": "INTERFERÊNCIA",
+      "sat_visiveis": 5
+    },
+    {
+      "horario": "00:21",
+      "score": 2.73,
+      "classificacao": "INTERFERÊNCIA",
+      "sat_visiveis": 5
+    },
+    {
+      "horario": "00:51",
+      "score": 5.51,
+      "classificacao": "MODERADO",
+      "sat_visiveis": 6
+    },
+    {
+      "horario": "01:21",
+      "score": 3.88,
+      "classificacao": "INTERFERÊNCIA",
+      "sat_visiveis": 4
+    }
+  ]
+}
