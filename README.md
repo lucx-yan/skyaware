@@ -24,7 +24,7 @@ O SkyAware calcula o **Sky Observation Score** — um índice de 0 a 10 — em t
 | Bruno Castilho | RM566799 | Front-End Design, Web Development |
 | João Victor Melo | RM566640 | Edge Computing & IoT, Cálculos (DPS), Storytelling |
 | Murilo Jeronimo | RM560641 | Front-End Design, Web Development, Edge Computing & IoT |
-| Vinicius Kozonoe | RM567264 | Computational Thinking com Python, Cálculos (DPS), Storytelling |
+| Vinicius Kozonoe | RM564264 | Computational Thinking com Python, Cálculos (DPS), Storytelling |
 | Yan Lucas Gonçalves | RM567046 | Front-End Design, Web Development, Software & TXD |
 
 ---
