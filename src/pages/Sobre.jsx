@@ -2,51 +2,54 @@ const EQUIPE = [
     {
         iniciais: "BC",
         nome: "Bruno Castilho",
-        rm: "RM: 566799",
-        disciplinas: ["FRONT-END", "WEB", "TKS"],
+        disciplinas: ["FRONT-END", "WEB DEV"],
         cor: "#4f9eff",
         github: "https://github.com/Castilho8",
     },
     {
         iniciais: "JV",
         nome: "João Victor Melo",
-        rm: "RM: 566640",
-        disciplinas: ["PYTHON", "ANÁLISE ORBITAL"],
+        disciplinas: ["EDGE COMPUTING", "IOT", "CÁLCULOS (DPS)", "STORYTELLING"],
         cor: "#a78bfa",
         github: "https://github.com/JoaoVictorMelo10",
     },
     {
         iniciais: "MJ",
         nome: "Murilo Jeronimo",
-        rm: "RM: 560641",
-        disciplinas: ["EDGE COMPUTING", "IOT"],
+        disciplinas: ["FRONT-END", "WEB DEV", "EDGE COMPUTING", "IOT"],
         cor: "#3dffa0",
         github: "https://github.com/murilojeronimoferreiranunes10-collab",
     },
     {
         iniciais: "VK",
         nome: "Vinicius Kozonoe",
-        rm: "RM: 567264",
-        disciplinas: ["STORYTELLING", "DPS"],
+        disciplinas: ["PYTHON", "CÁLCULOS (DPS)", "STORYTELLING"],
         cor: "#f77f00",
         github: "https://github.com/Vinicius-Kozonoe",
     },
     {
         iniciais: "YL",
         nome: "Yan Lucas Gonçalves",
-        rm: "RM: 567046",
-        disciplinas: ["STORYTELLING", "DPS"],
+        disciplinas: ["FRONT-END", "WEB DEV", "SOFTWARE DESIGN"],
         cor: "#ffd166",
         github: "https://github.com/lucx-yan",
     },
 ]
 
 const STACK = [
-    "React 18", "Vite 5", "Tailwind CSS v3", "React Router DOM",
-    "Python 3.x", "DP4", "FIWARE Orion GE", "ETH Comet",
-    "MQTT", "ESP32 / Mokel", "LDR / DH1755", "DHT22",
-    "BMP280", "OLED SSD1306", "Docker Compose", "GitHub Pages",
-    "NASA VIIRS", "NASA MODIS", "CelesTrak TLE", "Space-Track.org",
+    // Frontend
+    "React 19", "Vite 8", "Tailwind CSS v3", "React Router DOM", "Lucide React",
+    // Backend
+    "Python 3.x", "Flask API", "Nginx", "Let's Encrypt", "DuckDNS",
+    // FIWARE
+    "FIWARE Orion CB", "IoT Agent MQTT", "STH Comet", "Docker Compose",
+    // Edge
+    "ESP32 / Wokwi", "LDR / BH1750", "DHT22", "BMP180", "OLED SSD1306", "MQTT",
+    // APIs
+    "N2YO API", "Open-Meteo API", "VIIRS / NASA", "BORTLE_MAP", "Space-Track.org",
+    // Infra
+    "GitHub Pages", "VM Azure",
+    // Tipografia
     "Cormorant Garamond", "Inter", "Space Mono",
 ]
 
@@ -77,11 +80,8 @@ function CardMembro({ membro, index }) {
 
             {/* Info */}
             <div className="flex flex-col flex-1 gap-0">
-                <p className="[font-family:var(--font-display)] text-lg font-medium leading-tight mb-1.5 text-[var(--c-white)]">
+                <p className="[font-family:var(--font-display)] text-lg font-medium leading-tight mb-3 text-[var(--c-white)]">
                     {membro.nome}
-                </p>
-                <p className="[font-family:var(--font-mono)] text-[0.68rem] tracking-[0.1em] text-[rgba(79,158,255,0.5)] mb-3.5">
-                    {membro.rm}
                 </p>
 
                 {/* Disciplinas */}
@@ -140,10 +140,10 @@ function PillStack() {
 
 export default function Sobre() {
     return (
-        <div className="relative z-10 pt-24">
+        <div className="relative z-10 pt-24" style={{ overflowX: "hidden" }}>
 
             {/* Hero */}
-            <section className="px-16 pt-16 pb-12">
+            <section className="px-5 lg:px-16 pt-16 pb-12">
                 <p className="section-kicker animate-fade-in-up text-[0.76rem]">
                     ◈ Quem construiu o SkyAware
                 </p>
@@ -162,15 +162,13 @@ export default function Sobre() {
                 </h1>
             </section>
 
-            {/* Cards da equipe */}
-            <section className="px-16 pb-16 grid grid-cols-5 gap-5">
+            <section className="px-5 lg:px-16 pb-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5">
                 {EQUIPE.map((membro, i) => (
                     <CardMembro key={membro.iniciais} membro={membro} index={i} />
                 ))}
             </section>
 
-            {/* Rodapé da seção */}
-            <section className="px-16 pt-10 pb-20 border-t border-[rgba(232,244,253,0.05)]">
+            <section className="px-5 lg:px-16 pt-10 pb-20 border-t border-[rgba(232,244,253,0.05)]">
                 <p className="[font-family:var(--font-mono)] text-[0.72rem] tracking-[0.1em] text-[var(--c-muted)] mb-8">
                     FIAP · Engenharia de Software · 1ESPA · Global Solution 2026 · 2° Semestre
                 </p>

@@ -1,14 +1,15 @@
 import { Link } from "react-router-dom"
-import { ChevronRight, Satellite, Eye, Camera, AlertTriangle, TrendingUp, Globe } from "lucide-react"
+import { ChevronRight, Eye, Camera, Globe } from "lucide-react"
 
 // Hero
 function Hero() {
     return (
-        <section className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-12"
-            style={{ padding: "6rem 4rem 4rem" }}
+        <section
+            className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-12 px-5 lg:px-16"
+            style={{ paddingTop: "5rem", paddingBottom: "3rem" }}
         >
             {/* Lado Esquerdo */}
-            <div className="flex-1" style={{ maxWidth: "520px" }}>
+            <div className="flex-1 w-full" style={{ maxWidth: "520px" }}>
                 <p className="section-kicker animate-fade-in-up"
                     style={{ fontSize: "0.76rem" }}>
                     ◈ O problema que o SkyAware resolve
@@ -117,13 +118,13 @@ function Hero() {
                     {/* Gráfico de barras */}
                     <div style={{ marginBottom: "1.6rem" }}>
                         {[
-                            { ano: "2019", valor: 120, total: 8000 },
-                            { ano: "2020", valor: 900, total: 8000 },
-                            { ano: "2021", valor: 1800, total: 8000 },
-                            { ano: "2022", valor: 3200, total: 8000 },
-                            { ano: "2023", valor: 5000, total: 8000 },
-                            { ano: "2024", valor: 6500, total: 8000 },
-                            { ano: "2025", valor: 8000, total: 8000 },
+                            { ano: "2019", valor: 120,  total: 42000 },
+                            { ano: "2020", valor: 900,  total: 42000 },
+                            { ano: "2021", valor: 1800, total: 42000 },
+                            { ano: "2022", valor: 3200, total: 42000 },
+                            { ano: "2023", valor: 5000, total: 42000 },
+                            { ano: "2024", valor: 6500, total: 42000 },
+                            { ano: "2025", valor: 8000, total: 42000 },
                         ].map((item, i) => (
                             <div key={item.ano}
                                 style={{
@@ -231,10 +232,9 @@ function StatsBar() {
         { value: "2019", label: "Início da megaconstelação" },
     ]
     return (
-        <div className="relative z-10"
+        <div
+            className="relative z-10 grid grid-cols-2 lg:grid-cols-4"
             style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(4, 1fr)",
                 borderTop: "0.5px solid rgba(232, 244, 253, 0.05)",
                 borderBottom: "0.5px solid rgba(232, 244, 253, 0.05)",
             }}
@@ -242,16 +242,19 @@ function StatsBar() {
             {stats.map((stat, i) => (
                 <div key={i}
                     style={{
-                        padding: "2rem 3rem",
+                        padding: "1.5rem 1rem",
                         textAlign: "center",
-                        borderRight: i < stats.length - 1
+                        borderRight: i % 2 === 0
+                            ? "0.5px solid rgba(232, 244, 253, 0.05)"
+                            : "none",
+                        borderBottom: i < 2
                             ? "0.5px solid rgba(232, 244, 253, 0.05)"
                             : "none",
                     }}
                 >
                     <p style={{
                         fontFamily: "var(--font-display)",
-                        fontSize: "2.6rem",
+                        fontSize: "clamp(1.6rem, 4vw, 2.6rem)",
                         fontWeight: 300,
                         lineHeight: 1,
                         color: "var(--c-white)",
@@ -261,7 +264,7 @@ function StatsBar() {
                     </p>
                     <p style={{
                         fontFamily: "var(--font-mono)",
-                        fontSize: "0.75rem",
+                        fontSize: "0.62rem",
                         letterSpacing: "0.12em",
                         textTransform: "uppercase",
                         color: "var(--c-muted)",
@@ -297,13 +300,13 @@ function Contexto() {
         },
     ]
     return (
-        <section className="relative z-10"
+        <section
+            className="relative z-10 grid grid-cols-1 lg:grid-cols-[1fr_1.3fr] px-5 lg:px-16"
             style={{
-                padding: "4rem 4rem",
+                paddingTop: "3rem",
+                paddingBottom: "3rem",
                 borderBottom: "0.5px solid rgba(232, 244, 253, 0.04)",
-                display: "grid",
-                gridTemplateColumns: "1fr 1.3fr",
-                gap: "6rem",
+                gap: "3rem",
                 alignItems: "start",
             }}
         >
@@ -376,7 +379,6 @@ function Contexto() {
                 display: "flex",
                 flexDirection: "column",
                 gap: "1.1rem",
-                marginTop: "4.6rem",
             }}>
                 {[
                     { texto: "Em 2019, a SpaceX lançou os primeiros 60 satélites Starlink. O que parecia uma novidade rapidamente se tornou uma constelação de <b>mais de 6.000 unidades ativas</b>, cada uma refletindo luz solar e deixando rastros nas imagens astronômicas." },
@@ -442,13 +444,18 @@ function Timeline() {
 
     return (
         <section className="relative z-10">
-            <div style={{
-                padding: "2.5rem 4rem 1.2rem",
-                borderBottom: "0.5px solid rgba(232, 244, 253, 0.04)",
-                display: "flex",
-                alignItems: "baseline",
-                gap: "1.5rem",
-            }}>
+            {/* Header da seção */}
+            <div
+                className="px-5 lg:px-16"
+                style={{
+                    paddingTop: "2.5rem",
+                    paddingBottom: "1.2rem",
+                    borderBottom: "0.5px solid rgba(232, 244, 253, 0.04)",
+                    display: "flex",
+                    alignItems: "baseline",
+                    gap: "1.5rem",
+                }}
+            >
                 <p className="section-kicker" style={{ opacity: 1, fontSize: "0.85rem" }}>
                     Linha do tempo
                 </p>
@@ -462,24 +469,18 @@ function Timeline() {
                 </p>
             </div>
 
-            <div style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, 1fr)",
-            }}>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                 {eventos.map((e, i) => (
                     <div key={e.num}
+                        className="px-5 lg:px-10"
                         style={{
-                            padding: "2.2rem 2.5rem",
-                            borderRight: (i + 1) % 3 !== 0
-                                ? "0.5px solid rgba(232, 244, 253, 0.05)"
-                                : "none",
-                            borderBottom: i < 3
-                                ? "0.5px solid rgba(232, 244, 253, 0.05)"
-                                : "none",
+                            paddingTop: "2rem",
+                            paddingBottom: "2rem",
+                            borderBottom: "0.5px solid rgba(232, 244, 253, 0.05)",
                             transition: "background 0.2s ease",
                         }}
-                        onMouseEnter={e => e.currentTarget.style.background = "rgba(79, 158, 255, 0.03)"}
-                        onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                        onMouseEnter={ev => ev.currentTarget.style.background = "rgba(79, 158, 255, 0.03)"}
+                        onMouseLeave={ev => ev.currentTarget.style.background = "transparent"}
                     >
                         <div style={{ display: "flex", alignItems: "baseline", gap: "0.6rem", marginBottom: "0.9rem" }}>
                             <p style={{
@@ -530,9 +531,11 @@ function Timeline() {
 // CTA
 function CTA() {
     return (
-        <section className="relative z-10"
+        <section
+            className="relative z-10 px-5 lg:px-16"
             style={{
-                padding: "5rem 4rem",
+                paddingTop: "4rem",
+                paddingBottom: "4rem",
                 textAlign: "center",
                 borderTop: "0.5px solid rgba(232, 244, 253, 0.04)",
             }}
@@ -575,7 +578,7 @@ function CTA() {
 
 export default function Problema() {
     return (
-        <div className="relative z-10">
+        <div className="relative z-10" style={{ overflowX: "hidden" }}>
             <Hero />
             <StatsBar />
             <Contexto />

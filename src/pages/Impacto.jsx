@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom"
 import { ChevronRight, FlaskConical, Camera, Telescope, ShieldOff, ShieldCheck } from "lucide-react"
 
-// ─── Hero ────────────────────────────────────────────────────────────────────
+// Hero 
 function Hero() {
     const constelacoes = [
         { nome: "Starlink (SpaceX)", valor: 8000, max: 10000, color: "#FF4D4D" },
@@ -11,19 +11,11 @@ function Hero() {
     ]
 
     return (
-        <section
-            style={{
-                position: "relative",
-                padding: "7rem 5rem 5rem",
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "5rem",
-                alignItems: "center",
-                overflow: "hidden",
-            }}
+        <section style={{ position: "relative", overflow: "hidden" }}
+            className="px-5 lg:px-20 pt-24 pb-12 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-center"
         >
             {/* Linha decorativa vertical */}
-            <div style={{
+            <div className="hidden lg:block" style={{
                 position: "absolute",
                 left: "50%",
                 top: 0,
@@ -68,12 +60,12 @@ function Hero() {
                     color: "var(--c-white)",
                     marginBottom: "2rem",
                 }}>
-                    <span style={{ display: "block", fontSize: "clamp(3.5rem, 6vw, 6.5rem)" }}>
+                    <span style={{ display: "block", fontSize: "clamp(3rem, 6vw, 6.5rem)" }}>
                         O impacto
                     </span>
                     <span style={{
                         display: "block",
-                        fontSize: "clamp(3.5rem, 6vw, 6.5rem)",
+                        fontSize: "clamp(3rem, 6vw, 6.5rem)",
                         fontWeight: 700,
                         color: "transparent",
                         WebkitTextStroke: "1px rgba(232,244,253,0.7)",
@@ -83,7 +75,7 @@ function Hero() {
                     </span>
                     <span style={{
                         display: "block",
-                        fontSize: "clamp(3.5rem, 6vw, 6.5rem)",
+                        fontSize: "clamp(3rem, 6vw, 6.5rem)",
                         fontStyle: "italic",
                         color: "rgba(232,244,253,0.3)",
                     }}>
@@ -285,7 +277,7 @@ function Hero() {
     )
 }
 
-// ─── StatsBar ─────────────────────────────────────────────────────────────────
+// StatsBar 
 function StatsBar() {
     const stats = [
         { value: "30%",    label: "Imagens científicas afetadas" },
@@ -294,19 +286,23 @@ function StatsBar() {
         { value: "100k+",  label: "Objetos previstos até 2030" },
     ]
     return (
-        <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            borderTop: "0.5px solid rgba(232,244,253,0.05)",
-            borderBottom: "0.5px solid rgba(232,244,253,0.05)",
-            position: "relative",
-            zIndex: 10,
-        }}>
+        <div
+            className="grid grid-cols-2 lg:grid-cols-4"
+            style={{
+                borderTop: "0.5px solid rgba(232,244,253,0.05)",
+                borderBottom: "0.5px solid rgba(232,244,253,0.05)",
+                position: "relative",
+                zIndex: 10,
+            }}
+        >
             {stats.map((stat, i) => (
                 <div key={i} style={{
-                    padding: "2.2rem 2rem",
+                    padding: "1.5rem 1rem",
                     textAlign: "center",
-                    borderRight: i < stats.length - 1
+                    borderRight: i % 2 === 0
+                        ? "0.5px solid rgba(232,244,253,0.05)"
+                        : "none",
+                    borderBottom: i < 2
                         ? "0.5px solid rgba(232,244,253,0.05)"
                         : "none",
                     position: "relative",
@@ -318,7 +314,7 @@ function StatsBar() {
                 >
                     <p style={{
                         fontFamily: "var(--font-display)",
-                        fontSize: "clamp(2rem, 3.5vw, 3rem)",
+                        fontSize: "clamp(1.6rem, 3.5vw, 3rem)",
                         fontWeight: 200,
                         lineHeight: 1,
                         color: "var(--c-white)",
@@ -329,7 +325,7 @@ function StatsBar() {
                     </p>
                     <p style={{
                         fontFamily: "var(--font-mono)",
-                        fontSize: "0.68rem",
+                        fontSize: "0.62rem",
                         letterSpacing: "0.14em",
                         textTransform: "uppercase",
                         color: "rgba(232,244,253,0.28)",
@@ -342,7 +338,7 @@ function StatsBar() {
     )
 }
 
-// ─── Afetados ─────────────────────────────────────────────────────────────────
+// Afetados 
 function Afetados() {
     const grupos = [
         {
@@ -369,25 +365,29 @@ function Afetados() {
     ]
 
     return (
-        <section style={{
-            padding: "6rem 5rem",
-            borderBottom: "0.5px solid rgba(232,244,253,0.04)",
-            position: "relative",
-            zIndex: 10,
-        }}>
-            {/* Cabeçalho da seção */}
-            <div style={{
-                display: "flex",
-                alignItems: "baseline",
-                justifyContent: "space-between",
-                marginBottom: "4rem",
-                paddingBottom: "2rem",
-                borderBottom: "0.5px solid rgba(232,244,253,0.05)",
-            }}>
-                <div style={{ display: "flex", alignItems: "baseline", gap: "1.5rem" }}>
+        <section
+            className="px-5 lg:px-20"
+            style={{
+                paddingTop: "4rem",
+                paddingBottom: "4rem",
+                borderBottom: "0.5px solid rgba(232,244,253,0.04)",
+                position: "relative",
+                zIndex: 10,
+            }}
+        >
+            {/* Cabeçalho */}
+            <div
+                className="flex flex-col lg:flex-row lg:items-baseline lg:justify-between gap-3"
+                style={{
+                    marginBottom: "3rem",
+                    paddingBottom: "2rem",
+                    borderBottom: "0.5px solid rgba(232,244,253,0.05)",
+                }}
+            >
+                <div className="flex flex-col lg:flex-row lg:items-baseline gap-3 lg:gap-6">
                     <p style={{
                         fontFamily: "var(--font-mono)",
-                        fontSize: "0.7rem",
+                        fontSize: "0.75rem",
                         letterSpacing: "0.18em",
                         textTransform: "uppercase",
                         color: "rgba(79,158,255,0.5)",
@@ -407,7 +407,7 @@ function Afetados() {
                         </em>
                     </h2>
                 </div>
-                <p style={{
+                <p className="hidden lg:block" style={{
                     fontFamily: "var(--font-mono)",
                     fontSize: "0.7rem",
                     color: "rgba(232,244,253,0.15)",
@@ -417,14 +417,10 @@ function Afetados() {
                 </p>
             </div>
 
-            {/* Cards dos grupos */}
-            <div style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, 1fr)",
-                gap: "1px",
-                background: "rgba(232,244,253,0.04)",
-                marginBottom: "5rem",
-            }}>
+            <div
+                className="grid grid-cols-1 md:grid-cols-3 gap-px mb-16"
+                style={{ background: "rgba(232,244,253,0.04)" }}
+            >
                 {grupos.map((p) => {
                     const Icone = p.icon
                     return (
@@ -452,7 +448,7 @@ function Afetados() {
                             <Icone size={22} color={p.cor} strokeWidth={1.2} style={{ marginBottom: "1.2rem" }} />
                             <p style={{
                                 fontFamily: "var(--font-display)",
-                                fontSize: "1.2rem",
+                                fontSize: "1.5rem",
                                 fontWeight: 400,
                                 color: "var(--c-white)",
                                 marginBottom: "0.8rem",
@@ -462,7 +458,7 @@ function Afetados() {
                             </p>
                             <p style={{
                                 fontFamily: "var(--font-body)",
-                                fontSize: "0.88rem",
+                                fontSize: "1rem",
                                 fontWeight: 300,
                                 lineHeight: 1.75,
                                 color: "rgba(232,244,253,0.35)",
@@ -483,12 +479,7 @@ function Afetados() {
                 })}
             </div>
 
-            {/* Bloco de texto editorial */}
-            <div style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, 1fr)",
-                gap: "3rem",
-            }}>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {[
                     "O céu noturno sempre foi uma das maiores fontes de conhecimento da humanidade. Das primeiras navegações aos observatórios modernos, nossa compreensão do universo começou olhando para cima — e essa herança está sendo comprometida.",
                     "A poluição luminosa orbital é um fenômeno novo e crescente. Diferente da poluição das cidades, ela não pode ser bloqueada por um anteparo. Os satélites estão em órbita, refletindo luz solar, visíveis mesmo de locais remotos e reservas de céu escuro.",
@@ -496,7 +487,7 @@ function Afetados() {
                 ].map((texto, i) => (
                     <p key={i} style={{
                         fontFamily: "var(--font-body)",
-                        fontSize: "0.95rem",
+                        fontSize: "1rem",
                         fontWeight: 300,
                         lineHeight: 1.9,
                         color: "rgba(232,244,253,0.28)",
@@ -547,17 +538,18 @@ function Comparativo() {
     return (
         <section style={{ position: "relative", zIndex: 10 }}>
             {/* Cabeçalho */}
-            <div style={{
-                padding: "3rem 5rem 2rem",
-                borderBottom: "0.5px solid rgba(232,244,253,0.04)",
-                display: "flex",
-                alignItems: "baseline",
-                justifyContent: "space-between",
-            }}>
-                <div style={{ display: "flex", alignItems: "baseline", gap: "1.2rem" }}>
+            <div
+                className="px-5 lg:px-20 flex flex-col lg:flex-row lg:items-baseline lg:justify-between gap-3"
+                style={{
+                    paddingTop: "2.5rem",
+                    paddingBottom: "2rem",
+                    borderBottom: "0.5px solid rgba(232,244,253,0.04)",
+                }}
+            >
+                <div className="flex flex-col lg:flex-row lg:items-baseline gap-2 lg:gap-5">
                     <p style={{
                         fontFamily: "var(--font-mono)",
-                        fontSize: "0.7rem",
+                        fontSize: "0.9rem",
                         letterSpacing: "0.18em",
                         textTransform: "uppercase",
                         color: "rgba(79,158,255,0.5)",
@@ -566,14 +558,14 @@ function Comparativo() {
                     </p>
                     <p style={{
                         fontFamily: "var(--font-mono)",
-                        fontSize: "0.78rem",
+                        fontSize: "0.85rem",
                         color: "rgba(232,244,253,0.18)",
                         letterSpacing: "0.06em",
                     }}>
                         // por que o SkyAware é importante
                     </p>
                 </div>
-                <p style={{
+                <p className="hidden lg:block" style={{
                     fontFamily: "var(--font-mono)",
                     fontSize: "0.7rem",
                     color: "rgba(232,244,253,0.15)",
@@ -583,17 +575,19 @@ function Comparativo() {
                 </p>
             </div>
 
-            <div style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(2, 1fr)",
-            }}>
+            <div className="grid grid-cols-1 lg:grid-cols-2">
                 {colunas.map((col, i) => {
                     const Icone = col.icon
                     return (
                         <div key={col.num}
+                            className="px-5 lg:px-16"
                             style={{
-                                padding: "3rem 4rem",
+                                paddingTop: "2.5rem",
+                                paddingBottom: "2.5rem",
                                 borderRight: i === 0
+                                    ? "0.5px solid rgba(232,244,253,0.05)"
+                                    : "none",
+                                borderBottom: i === 0
                                     ? "0.5px solid rgba(232,244,253,0.05)"
                                     : "none",
                                 position: "relative",
@@ -685,19 +679,19 @@ function Comparativo() {
     )
 }
 
-// ─── CTA ─────────────────────────────────────────────────────────────────────
+// CTA 
 function CTA() {
     return (
-        <section style={{
-            padding: "7rem 5rem",
-            borderTop: "0.5px solid rgba(232,244,253,0.04)",
-            position: "relative",
-            zIndex: 10,
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "6rem",
-            alignItems: "center",
-        }}>
+        <section
+            className="px-5 lg:px-20 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-24 items-center"
+            style={{
+                paddingTop: "5rem",
+                paddingBottom: "5rem",
+                borderTop: "0.5px solid rgba(232,244,253,0.04)",
+                position: "relative",
+                zIndex: 10,
+            }}
+        >
             {/* Esquerda */}
             <div>
                 <p style={{
@@ -716,7 +710,6 @@ function CTA() {
                     fontWeight: 200,
                     lineHeight: 1.02,
                     color: "var(--c-white)",
-                    marginBottom: "0",
                     letterSpacing: "-0.02em",
                 }}>
                     O espaço está<br />
@@ -760,10 +753,10 @@ function CTA() {
     )
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+// Page 
 export default function Impacto() {
     return (
-        <div style={{ position: "relative", zIndex: 10 }}>
+        <div style={{ position: "relative", zIndex: 10, overflowX: "hidden" }}>
             <Hero />
             <StatsBar />
             <Afetados />
