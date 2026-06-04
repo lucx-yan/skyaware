@@ -59,8 +59,9 @@ export default function SeletorPerfil({onSelecionar}) {
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                justifyContent: "center",
-                padding: "2rem",
+                justifyContent: "flex-start",
+                padding: "clamp(2rem, 8vh, 5rem) 1.5rem 3rem",
+                overflowY: "auto",
                 opacity: saindo ? 0 : visivel ? 1 : 0,
                 transform: saindo
                     ? "scale(1.02)"
@@ -72,6 +73,7 @@ export default function SeletorPerfil({onSelecionar}) {
             <div
                 style={{
                     marginBottom: "1.5rem",
+                    flexShrink: 0,
                     opacity: visivel ? 1 : 0,
                     transform: visivel ? "translateY(0)" : "translateY(12px)",
                     transition: "opacity 0.6s ease 0.1s, transform 0.6s ease 0.1s",
@@ -94,6 +96,7 @@ export default function SeletorPerfil({onSelecionar}) {
                     color: "var(--c-white)",
                     textAlign: "center",
                     marginBottom: "0.6rem",
+                    flexShrink: 0,
                     opacity: visivel ? 1 : 0,
                     transform: visivel ? "translateY(0)" : "translateY(16px)",
                     transition: "opacity 0.6s ease 0.15s, transform 0.6s ease 0.15s",
@@ -114,7 +117,8 @@ export default function SeletorPerfil({onSelecionar}) {
                     textTransform: "uppercase",
                     color: "var(--c-muted)",
                     textAlign: "center",
-                    marginBottom: "3.5rem",
+                    marginBottom: "2.5rem",
+                    flexShrink: 0,
                     opacity: visivel ? 1 : 0,
                     transform: visivel ? "translateY(0)" : "translateY(16px)",
                     transition: "opacity 0.6s ease 0.2s, transform 0.6s ease 0.2s",
@@ -132,6 +136,7 @@ export default function SeletorPerfil({onSelecionar}) {
                     justifyContent: "center",
                     maxWidth: "900px",
                     width: "100%",
+                    paddingBottom: "1rem",
                     opacity: visivel ? 1 : 0,
                     transform: visivel ? "translateY(0)" : "translateY(20px)",
                     transition: "opacity 0.6s ease 0.3s, transform 0.6s ease 0.3s",
@@ -147,7 +152,7 @@ export default function SeletorPerfil({onSelecionar}) {
                             onClick={() => handleSelecionar(perfil.id)}
                             style={{
                                 flex: 1,
-                                minWidth: "220px",
+                                minWidth: "min(100%, 220px)",
                                 maxWidth: "270px",
                                 background: estaSelecionado
                                     ? `rgba(${perfil.corRgb}, 0.08)`
