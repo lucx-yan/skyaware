@@ -185,7 +185,7 @@ function Hero() {
                         {[
                             { label: "Starlink ativos", value: "8.000+", color: "var(--c-red)" },
                             { label: "Previsão 2030", value: "100k+", color: "var(--c-yellow)" },
-                            { label: "Imagens afetadas", value: "30%", color: "var(--c-cyan)" },
+                            { label: "Previsão de imagens afetadas", value: "65%", color: "var(--c-cyan)" },
                         ].map(m => (
                             <div key={m.label}
                                 style={{
@@ -227,8 +227,8 @@ function Hero() {
 function StatsBar() {
     const stats = [
         { value: "42.000", label: "Satélites aprovados pela FCC" },
-        { value: "30%", label: "Imagens científicas afetadas" },
-        { value: "7 min", label: "Intervalo médio de passagem" },
+        { value: "65%", label: "Estimativa de imagens científicas afetadas" },
+        { value: "2 min", label: "Estimativa de intervalo médio de passagem" },
         { value: "2019", label: "Início da megaconstelação" },
     ]
     return (

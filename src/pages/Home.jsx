@@ -1,9 +1,11 @@
+import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { ChevronRight, MapPin, RefreshCw, Telescope, Camera, FlaskConical } from "lucide-react"
-import data from "../data/satellites.json"
+import { fetchScore } from "../services/api"
+import staticData from "../data/satellites.json"
 
 // Hero
-function Hero({ perfil }) {
+function Hero({ perfil, data }) {
     const { meta, scoreFactors } = data
     // Cálculo
     const B = (scoreFactors.orbital.value * scoreFactors.orbital.weight) + (scoreFactors.local.value * scoreFactors.local.weight)
@@ -347,7 +349,7 @@ function Hero({ perfil }) {
 }
 
 // Estatísticas
-function StatsBar() {
+function StatsBar({data}) {
     const {meta} = data
     const stats = [
         {value: meta.starlinkActive.toLocaleString(), label: "Starlink em órbita"},
@@ -686,11 +688,32 @@ function CTA() {
     )
 }
 
-export default function Home({ perfil }) {
+export default function Home({perfil}) {
+    const [data, setData] = useState(staticData)
+
+    useEffect(() => {
+        async function buscar() {
+            try {
+                const resultado = await fetchScore()
+
+                setData(prev => ({
+                    ...prev,
+                    meta: { ...resultado.meta, starlinkActive: prev.meta.starlinkActive, affectedImages: prev.meta.affectedImages },
+                    scoreFactors: resultado.scoreFactors,
+                }))
+            } catch (e) {
+                console.warn("Home: API indisponível, usando dados estáticos.", e.message)
+            }
+        }
+        buscar()
+        const intervalo = setInterval(buscar, 60 * 1000)
+        return () => clearInterval(intervalo)
+    }, [])
+
     return (
         <div className="relative z-10" style={{overflowX: "hidden"}}>
-            <Hero perfil={perfil} />
-            <StatsBar />
+            <Hero perfil={perfil} data={data} />
+            <StatsBar data={data} />
             <Sobre />
             <Features />
             <CTA />

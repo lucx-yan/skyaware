@@ -1,9 +1,9 @@
 import {useEffect, useState, useRef} from 'react'
 import {MapPin, RefreshCw, Camera, Filter, Cpu, Thermometer, Droplets, Gauge, Eye} from 'lucide-react'
-import data from '../data/satellites.json'
+import {fetchScore} from '../services/api'
+import staticData from '../data/satellites.json'
 
-// TODO: substituir por fetch à Flask API quando backend estiver no ar:
-// fetch('https://darksky-fiap.duckdns.org/score').then(r => r.json()).then(d => setSensores(d.sensores))
+// TODO: substituir por fetch à Flask API quando backend estiver no ar: fetch('https://darksky-fiap.duckdns.org/score').then(r => r.json()).then(d => setSensores(d.sensores))
 const SENSORES_MOCK = {
     temperatura: 22.0,
     umidade: 60.0,
@@ -19,7 +19,7 @@ const APIS_MOCK = {
 }
 
 // Painel de sensores
-function PainelSensores() {
+function PainelSensores({sensores = SENSORES_MOCK, apis = APIS_MOCK}) {
     return (
         <div style={{
             padding: "1.2rem 1.5rem",
@@ -44,10 +44,10 @@ function PainelSensores() {
                 marginBottom: "1.2rem",
             }}>
                 {[
-                    { icon: Thermometer, label: "Temperatura", valor: `${SENSORES_MOCK.temperatura}`, unidade: "°C", cor: "var(--c-cyan)" },
-                    { icon: Droplets,   label: "Umidade",      valor: `${SENSORES_MOCK.umidade}`,     unidade: "%",  cor: "var(--c-cyan)" },
-                    { icon: Gauge,      label: "Pressão",      valor: `${SENSORES_MOCK.pressao}`,     unidade: "hPa", cor: "var(--c-cyan)" },
-                    { icon: Eye,        label: "Escuridão Local", valor: `${SENSORES_MOCK.escuridao}`, unidade: "%", cor: "var(--c-yellow)" },
+                    {icon: Thermometer, label: "Temperatura", valor: `${sensores.temperatura}`, unidade: "°C", cor: "var(--c-cyan)"},
+                    {icon: Droplets, label: "Umidade", valor: `${sensores.umidade}`, unidade: "%", cor: "var(--c-cyan)"},
+                    {icon: Gauge, label: "Pressão", valor: `${sensores.pressao}`, unidade: "hPa", cor: "var(--c-cyan)"},
+                    {icon: Eye, label: "Escuridão Local", valor: `${sensores.escuridao}`, unidade: "%", cor: "var(--c-yellow)"},
                 ].map(s => {
                     const Icone = s.icon
                     return (
@@ -123,13 +123,13 @@ function PainelSensores() {
                             N2YO · F_ORBITAL (Starlink)
                         </p>
                         <p style={{fontFamily: "var(--font-display)", fontSize: "1rem", fontWeight: 300, color: "var(--c-green)"}}>
-                            {APIS_MOCK.fOrbital.pct}%
+                            {apis.fOrbital.pct}%
                         </p>
                     </div>
-                    <p style={{fontFamily: "var(--font-mono)", fontSize: "0.6rem", color: "rgba(232,244,253,0.3)"}}>{APIS_MOCK.fOrbital.label}</p>
-                    <p style={{fontFamily: "var(--font-mono)", fontSize: "0.58rem", color: "rgba(232,244,253,0.18)", marginTop: "1px"}}>{APIS_MOCK.fOrbital.sub}</p>
+                    <p style={{fontFamily: "var(--font-mono)", fontSize: "0.6rem", color: "rgba(232,244,253,0.3)"}}>{apis.fOrbital.label}</p>
+                    <p style={{fontFamily: "var(--font-mono)", fontSize: "0.58rem", color: "rgba(232,244,253,0.18)", marginTop: "1px"}}>{apis.fOrbital.sub}</p>
                     <div style={{height: "2px", background: "rgba(232,244,253,0.06)", borderRadius: "1px", overflow: "hidden", marginTop: "0.4rem"}}>
-                        <div style={{height: "100%", width: `${APIS_MOCK.fOrbital.pct}%`, background: "var(--c-green)", borderRadius: "1px"}}/>
+                        <div style={{height: "100%", width: `${apis.fOrbital.pct}%`, background: "var(--c-green)", borderRadius: "1px"}}/>
                     </div>
                 </div>
 
@@ -145,13 +145,13 @@ function PainelSensores() {
                             Open-Meteo · M_ATM
                         </p>
                         <p style={{fontFamily: "var(--font-display)", fontSize: "1rem", fontWeight: 300, color: "var(--c-cyan)"}}>
-                            {APIS_MOCK.mAtm.pct}%
+                            {apis.mAtm.pct}%
                         </p>
                     </div>
-                    <p style={{fontFamily: "var(--font-mono)", fontSize: "0.6rem", color: "rgba(232,244,253,0.3)"}}>{APIS_MOCK.mAtm.label}</p>
-                    <p style={{fontFamily: "var(--font-mono)", fontSize: "0.58rem", color: "rgba(232,244,253,0.18)", marginTop: "1px"}}>{APIS_MOCK.mAtm.sub}</p>
+                    <p style={{fontFamily: "var(--font-mono)", fontSize: "0.6rem", color: "rgba(232,244,253,0.3)"}}>{apis.mAtm.label}</p>
+                    <p style={{fontFamily: "var(--font-mono)", fontSize: "0.58rem", color: "rgba(232,244,253,0.18)", marginTop: "1px"}}>{apis.mAtm.sub}</p>
                     <div style={{height: "2px", background: "rgba(232,244,253,0.06)", borderRadius: "1px", overflow: "hidden", marginTop: "0.4rem"}}>
-                        <div style={{height: "100%", width: `${APIS_MOCK.mAtm.pct}%`, background: "var(--c-cyan)", borderRadius: "1px"}}/>
+                        <div style={{height: "100%", width: `${apis.mAtm.pct}%`, background: "var(--c-cyan)", borderRadius: "1px"}}/>
                     </div>
                 </div>
 
@@ -167,13 +167,13 @@ function PainelSensores() {
                             Bortle Scale · M_LUM
                         </p>
                         <p style={{fontFamily: "var(--font-display)", fontSize: "1rem", fontWeight: 300, color: "var(--c-yellow)"}}>
-                            {APIS_MOCK.mLum.pct}%
+                            {apis.mLum.pct}%
                         </p>
                     </div>
-                    <p style={{fontFamily: "var(--font-mono)", fontSize: "0.6rem", color: "rgba(232,244,253,0.3)"}}>{APIS_MOCK.mLum.label}</p>
-                    <p style={{fontFamily: "var(--font-mono)", fontSize: "0.58rem", color: "rgba(232,244,253,0.18)", marginTop: "1px"}}>{APIS_MOCK.mLum.sub}</p>
+                    <p style={{fontFamily: "var(--font-mono)", fontSize: "0.6rem", color: "rgba(232,244,253,0.3)"}}>{apis.mLum.label}</p>
+                    <p style={{fontFamily: "var(--font-mono)", fontSize: "0.58rem", color: "rgba(232,244,253,0.18)", marginTop: "1px"}}>{apis.mLum.sub}</p>
                     <div style={{height: "2px", background: "rgba(232,244,253,0.06)", borderRadius: "1px", overflow: "hidden", marginTop: "0.4rem"}}>
-                        <div style={{height: "100%", width: `${APIS_MOCK.mLum.pct}%`, background: "var(--c-yellow)", borderRadius: "1px"}}/>
+                        <div style={{height: "100%", width: `${apis.mLum.pct}%`, background: "var(--c-yellow)", borderRadius: "1px"}}/>
                     </div>
                 </div>
 
@@ -189,13 +189,13 @@ function PainelSensores() {
                             ESP32 · F_LOCAL
                         </p>
                         <p style={{fontFamily: "var(--font-display)", fontSize: "1rem", fontWeight: 300, color: "var(--c-green)"}}>
-                            {APIS_MOCK.fLocal.valor}
+                            {apis.fLocal.valor}
                         </p>
                     </div>
-                    <p style={{fontFamily: "var(--font-mono)", fontSize: "0.6rem", color: "rgba(232,244,253,0.3)"}}>{APIS_MOCK.fLocal.label}</p>
-                    <p style={{fontFamily: "var(--font-mono)", fontSize: "0.58rem", color: "rgba(232,244,253,0.18)", marginTop: "1px"}}>{APIS_MOCK.fLocal.sub}</p>
+                    <p style={{fontFamily: "var(--font-mono)", fontSize: "0.6rem", color: "rgba(232,244,253,0.3)"}}>{apis.fLocal.label}</p>
+                    <p style={{fontFamily: "var(--font-mono)", fontSize: "0.58rem", color: "rgba(232,244,253,0.18)", marginTop: "1px"}}>{apis.fLocal.sub}</p>
                     <div style={{height: "2px", background: "rgba(232,244,253,0.06)", borderRadius: "1px", overflow: "hidden", marginTop: "0.4rem"}}>
-                        <div style={{height: "100%", width: `${APIS_MOCK.fLocal.valor * 100}%`, background: "var(--c-green)", borderRadius: "1px"}}/>
+                        <div style={{height: "100%", width: `${apis.fLocal.valor * 100}%`, background: "var(--c-green)", borderRadius: "1px"}}/>
                     </div>
                 </div>
             </div>
@@ -231,7 +231,6 @@ function MapaCanvas({filtro, satellites}) {
             const map = {
                 Starlink: "rgba(79, 158, 255,",
                 OneWeb: "rgba(247, 127, 0,",
-                NOAA: "rgba(61, 255, 160,",
                 Kuiper: "rgba(255, 209, 102,",
             }
             return map[constellation] || "rgba(232, 244, 253,"
@@ -347,7 +346,6 @@ function MapaCanvas({filtro, satellites}) {
             const legendItems = [
                 {label: "Starlink", color: "rgba(79, 158, 255, 0.85)"},
                 {label: "OneWeb", color: "rgba(247, 127, 0, 0.85)"},
-                {label: "NOAA", color: "rgba(61, 255, 160, 0.8)"},
                 {label: "Kuiper", color: "rgba(255, 209, 102, 0.8)"},
                 {label: "⚠ < 10min", color: "rgba(255, 80, 80, 0.85)"},
             ]
@@ -392,7 +390,7 @@ export default function MapaCeu({perfil}) {
     )
 }
 
-function SidebarConteudo({perfil, score, status, scoreFactors, satsVisiveis, expSeg, setExpSeg, azimuth, setAzimuth, rastrosEsperados}) {
+function SidebarConteudo({perfil, score, status, scoreFactors, satsVisiveis, expSeg, setExpSeg, azimuth, setAzimuth, rastrosEsperados, sensores, apis}) {
     return (
         <div style={{
             display: "flex",
@@ -489,7 +487,7 @@ function SidebarConteudo({perfil, score, status, scoreFactors, satsVisiveis, exp
                 </div>
             </div>
 
-            {perfil === "profissional" && <PainelSensores />}
+            {perfil === "profissional" && <PainelSensores sensores={sensores} apis={apis} />}
             
             {/* Modo Fotografia - Fotógrafo */}
             {perfil === "fotografo" && (
@@ -696,7 +694,30 @@ function LayoutMapa({perfil}) {
     const [filtro, setFiltro] = useState("todos")
     const [expSeg, setExpSeg] = useState(30)
     const [azimuth, setAzimuth] = useState(180)
-    const {meta, satellites, scoreFactors} = data
+    const [apiData, setApiData] = useState(null)
+    const {meta, satellites, scoreFactors} = apiData || staticData
+
+    const sensores = apiData?.sensores || SENSORES_MOCK
+    const apis = apiData ? {
+        fOrbital: {pct: Math.round(apiData.scoreFactors.orbital.value * 100), label: `Qualidade orbital · ${apiData.scoreFactors.orbital.value >= 0.7 ? "Excelente" : "Moderada"}`, sub: "Starlink sobre o observador (N2YO)"},
+        mAtm:     {pct: Math.round((1 - apiData.scoreFactors.matm.value) * 100), label: "Cobertura de nuvens", sub: `M_atm = ${apiData.scoreFactors.matm.value.toFixed(3)}`},
+        mLum:     {pct: Math.min(Math.round((1 - apiData.scoreFactors.mlum.value) * 200), 100), label: "Poluição luminosa", sub: `M_lum = ${apiData.scoreFactors.mlum.value.toFixed(3)}`},
+        fLocal:   {valor: apiData.scoreFactors.local.value, label: "Fator local combinado", sub: "Hum + Press + LDR"},
+    } : APIS_MOCK
+
+    useEffect(() => {
+        async function buscar() {
+            try {
+                const resultado = await fetchScore()
+                setApiData(resultado)
+            } catch (e) {
+                console.warn("MapaCeu: API indisponível, usando dados estáticos.", e.message)
+            }
+        }
+        buscar()
+        const intervalo = setInterval(buscar, 60 * 1000)
+        return () => clearInterval(intervalo)
+    }, [])
 
     // Cálculo
     const B = (scoreFactors.orbital.value * scoreFactors.orbital.weight) + (scoreFactors.local.value * scoreFactors.local.weight)
@@ -743,7 +764,7 @@ function LayoutMapa({perfil}) {
                         </div>
                         <div className='flex items-center gap-2'>
                             <Filter size={19} style={{color: "var(--c-muted)"}}/>
-                            {["todos", "starlink", "oneweb", "noaa"].map(f => (
+                            {["todos", "starlink", "oneweb",].map(f => (
                                 <button key={f} onClick={() => setFiltro(f)} style={{
                                     fontFamily: "var(--font-mono)", fontSize: "0.7rem", letterSpacing: "0.08em", textTransform: "uppercase",
                                     padding: "3px 10px", borderRadius: "3px", cursor: "pointer",
@@ -774,6 +795,8 @@ function LayoutMapa({perfil}) {
                     azimuth={azimuth}
                     setAzimuth={setAzimuth}
                     rastrosEsperados={rastrosEsperados}
+                    sensores={sensores}
+                    apis={apis}
                 />
             </div>
 
@@ -799,7 +822,7 @@ function LayoutMapa({perfil}) {
                         </p>
                     </div>
                     <div className='flex gap-1 flex-wrap justify-end'>
-                        {["todos", "starlink", "oneweb", "noaa"].map(f => (
+                        {["todos", "starlink", "oneweb"].map(f => (
                             <button key={f} onClick={() => setFiltro(f)} style={{
                                 fontFamily: "var(--font-mono)",
                                 fontSize: "0.6rem",
@@ -889,10 +912,10 @@ function LayoutMapa({perfil}) {
                         </div>
                         <div style={{display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.4rem", marginBottom: "0.8rem"}}>
                             {[
-                                {label: "Temperatura", valor: `${SENSORES_MOCK.temperatura}°C`, cor: "var(--c-cyan)"},
-                                {label: "Umidade", valor: `${SENSORES_MOCK.umidade}%`, cor: "var(--c-cyan)"},
-                                {label: "Pressão", valor: `${SENSORES_MOCK.pressao}hPa`, cor: "var(--c-cyan)"},
-                                {label: "Escuridão", valor: `${SENSORES_MOCK.escuridao}%`, cor: "var(--c-yellow)"},
+                                {label: "Temperatura", valor: `${sensores.temperatura}°C`, cor: "var(--c-cyan)"},
+                                {label: "Umidade", valor: `${sensores.umidade}%`, cor: "var(--c-cyan)"},
+                                {label: "Pressão", valor: `${sensores.pressao}hPa`, cor: "var(--c-cyan)"},
+                                {label: "Escuridão", valor: `${sensores.escuridao}%`, cor: "var(--c-yellow)"},
                             ].map(s => (
                                 <div key={s.label} style={{padding: "0.5rem 0.7rem", background: "rgba(79,158,255,0.03)", border: "0.5px solid rgba(79,158,255,0.08)", borderRadius: "3px"}}>
                                     <p style={{fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: s.cor, fontWeight: "bold"}}>{s.valor}</p>
@@ -902,10 +925,10 @@ function LayoutMapa({perfil}) {
                         </div>
                         <div style={{display: "flex", flexDirection: "column", gap: "0.35rem"}}>
                             {[
-                                {label: "N2YO f_orbital", valor: `${APIS_MOCK.fOrbital.pct}%`, cor: "var(--c-green)"},
-                                {label: "Open-Meteo M_atm", valor: `${APIS_MOCK.mAtm.pct}%`, cor: "var(--c-cyan)"},
-                                {label: "Bortle M_lum", valor: `${APIS_MOCK.mLum.pct}%`, cor: "var(--c-yellow)"},
-                                {label: "ESP32 f_local", valor: `${APIS_MOCK.fLocal.valor}`, cor: "var(--c-green)"},
+                                {label: "N2YO f_orbital", valor: `${apis.fOrbital.pct}%`, cor: "var(--c-green)"},
+                                {label: "Open-Meteo M_atm", valor: `${apis.mAtm.pct}%`, cor: "var(--c-cyan)"},
+                                {label: "Bortle M_lum", valor: `${apis.mLum.pct}%`, cor: "var(--c-yellow)"},
+                                {label: "ESP32 f_local", valor: `${apis.fLocal.valor}`, cor: "var(--c-green)"},
                             ].map(a => (
                                 <div key={a.label} className='flex items-center justify-between'>
                                     <p style={{fontFamily: "var(--font-mono)", fontSize: "0.62rem", color: "rgba(232,244,253,0.3)"}}>{a.label}</p>

@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from "react"
 import { MapPin, Bell, AlertTriangle, CheckCircle, Clock } from "lucide-react"
-import data from "../data/satellites.json"
+import { fetchScore, fetchForecast, fetchHistory } from "../services/api"
+import staticData from "../data/satellites.json"
 
 // TODO: substituir por fetch à Flask API quando backend estiver no ar:
 // fetch('https://darksky-fiap.duckdns.org/history?limit=200')
-//   .then(r => r.json()).then(d => setHistorico(d))
-// Formato esperado da API: [{ ts: "21:00", score: 8.4 }, ...]
+// .then(r => r.json()).then(d => setHistorico(d))
+
 const HISTORICO_MOCK = [
     { ts: "21:00", score: 8.4 }, { ts: "21:05", score: 8.3 },
     { ts: "21:10", score: 8.5 }, { ts: "21:15", score: 7.8 },
@@ -40,13 +41,13 @@ const HISTORICO_MOCK = [
 ]
 
 // Gráfico
-function GraficoHistorico({ perfil }) {
+function GraficoHistorico({perfil, historico}) {
     const containerRef = useRef(null)
     const [tooltip, setTooltip] = useState(null)
     const [largura, setLargura] = useState(800)
 
     // Labels do eixo X
-    const labelsX = HISTORICO_MOCK
+    const labelsX = historico
         .map((p, i) => ({ ts: p.ts, i }))
         .filter((_, i) => i % 6 === 0)
 
@@ -59,18 +60,18 @@ function GraficoHistorico({ perfil }) {
         return () => obs.disconnect()
     }, [])
 
-    const PAD  = { top: 20, right: 20, bottom: 36, left: 36 }
-    const H    = 180
-    const W    = largura
-    const iW   = W - PAD.left - PAD.right
-    const iH   = H - PAD.top  - PAD.bottom
-    const n    = HISTORICO_MOCK.length
+    const PAD = { top: 20, right: 20, bottom: 36, left: 36 }
+    const H = 180
+    const W = largura
+    const iW = W - PAD.left - PAD.right
+    const iH = H - PAD.top  - PAD.bottom
+    const n = historico.length
 
-    function xPos(i) { return PAD.left + (i / (n - 1)) * iW }
-    function yPos(s) { return PAD.top  + iH - (s / 10) * iH }
+    function xPos(i) {return PAD.left + (n > 1 ? (i / (n - 1)) : 0) * iW}
+    function yPos(s) {return PAD.top  + iH - (s / 10) * iH}
 
     // Caminho SVG da linha
-    const path = HISTORICO_MOCK.map((p, i) =>
+    const path = historico.map((p, i) =>
         `${i === 0 ? "M" : "L"} ${xPos(i).toFixed(1)} ${yPos(p.score).toFixed(1)}`
     ).join(" ")
 
@@ -103,7 +104,7 @@ function GraficoHistorico({ perfil }) {
                     </p>
                 </div>
                 <p style={{ fontFamily: "var(--font-mono)", fontSize: "0.68rem", color: "rgba(232,244,253,0.2)" }}>
-                    {HISTORICO_MOCK.length} pontos
+                    {historico.length} pontos
                 </p>
             </div>
 
@@ -176,7 +177,7 @@ function GraficoHistorico({ perfil }) {
                     />
 
                     {/* Pontos */}
-                    {HISTORICO_MOCK.map((p, i) => (
+                    {historico.map((p, i) => (
                         <circle
                             key={i}
                             cx={xPos(i)}
@@ -216,7 +217,7 @@ function GraficoHistorico({ perfil }) {
 
                 {/* Tooltip flutuante */}
                 {tooltip && (() => {
-                    const p = HISTORICO_MOCK[tooltip.idx]
+                    const p = historico[tooltip.idx]
                     const cor = scoreCor(p.score)
                     const left = Math.min(Math.max(tooltip.x / W * 100, 8), 88)
                     return (
@@ -441,8 +442,7 @@ function AlertaCard({alerta}) {
 
 // Jnaelas de observção
 
-function JanelasObservacao({perfil}) {
-    const {weekForecast} = data
+function JanelasObservacao({perfil, weekForecast}) {
 
     return (
         <div style={{marginBottom: "4rem"}}>
@@ -628,8 +628,7 @@ function JanelasObservacao({perfil}) {
 } 
 
 // Painel de simulação (perfil profissional)
-function PainelSimulacao() {
-    const {scoreFactors} = data
+function PainelSimulacao({scoreFactors}) {
 
     const [nuvens, setNuvens] = useState(10)
     const [poluicao, setPoluicao] = useState(63)
@@ -812,8 +811,34 @@ function PainelSimulacao() {
 
 // Página
 export default function Alertas({perfil}) {
-    const {meta, scoreFactors} = data
+    const [apiData, setApiData] = useState(null)    
+    const [weekForecast, setWeekForecast] = useState(staticData.weekForecast)
+    const [historico, setHistorico] = useState(HISTORICO_MOCK)
+    const {meta, scoreFactors} = apiData || staticData
     const alertas = ALERTAS_DATA[perfil] || ALERTAS_DATA.amador
+
+    useEffect(() => {
+        async function buscar() {
+            
+            const [scoreRes, forecastRes, historyRes] = await Promise.allSettled([
+                fetchScore(),
+                fetchForecast(),
+                fetchHistory(200),
+            ])
+
+            if (scoreRes.status === "fulfilled") setApiData(scoreRes.value)
+            else console.warn("Alertas: /score indisponível.", scoreRes.reason?.message)
+
+            if (forecastRes.status === "fulfilled" && forecastRes.value.length > 0) setWeekForecast(forecastRes.value)
+            else console.warn("Alertas: /forecast indisponível.", forecastRes.reason?.message)
+
+            if (historyRes.status === "fulfilled" && historyRes.value.length > 0) setHistorico(historyRes.value)
+            else console.warn("Alertas: /history indisponível.", historyRes.reason?.message)
+        }
+        buscar()
+        const intervalo = setInterval(buscar, 60 * 1000)
+        return () => clearInterval(intervalo)
+    }, [])
 
     const B = (scoreFactors.orbital.value * scoreFactors.orbital.weight) + (scoreFactors.local.value * scoreFactors.local.weight)
     const score = (B * scoreFactors.matm.value * scoreFactors.mlum.value * 10).toFixed(1)
@@ -897,11 +922,11 @@ export default function Alertas({perfil}) {
                 ))}
             </div>
 
-            <JanelasObservacao perfil={perfil}/>
+            <JanelasObservacao perfil={perfil} weekForecast={weekForecast}/>
 
-            <GraficoHistorico perfil={perfil} />
+            <GraficoHistorico perfil={perfil} historico={historico}/>
 
-            {perfil === "profissional" && <PainelSimulacao/>}
+            {perfil === "profissional" && <PainelSimulacao scoreFactors={scoreFactors}/>}
         </div>
     )
 }
