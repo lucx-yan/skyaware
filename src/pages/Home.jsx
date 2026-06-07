@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { ChevronRight, MapPin, RefreshCw, Telescope, Camera, FlaskConical } from "lucide-react"
-import { fetchScore } from "../services/api"
+import { fetchScore, fetchForecast } from "../services/api"
 import staticData from "../data/satellites.json"
 
 // Hero
-function Hero({ perfil, data }) {
+function Hero({perfil, data, forecast}) {
     const { meta, scoreFactors } = data
     // Cálculo
     const B = (scoreFactors.orbital.value * scoreFactors.orbital.weight) + (scoreFactors.local.value * scoreFactors.local.weight)
@@ -24,6 +24,55 @@ function Hero({ perfil, data }) {
         if (perfil === "profissional") return `B = ${B.toFixed(2)} · M_atm = ${scoreFactors.matm.value} · M_lum = ${scoreFactors.mlum.value}`
         return `${meta.starlinkActive.toLocaleString()} Starlink ativos agora`
     }
+
+    const temForecast = forecast && forecast.length > 0
+    function scoreCor(s) {
+        if (s >= 7) return "var(--c-green)"
+        if (s >= 4) return "var(--c-yellow)"
+        return "var(--c-red)"
+    }
+
+    function parseMins(t) {
+        const parts = (t || "00:00").split(":").map(Number)
+        return parts[0] * 60 + (parts[1] || 0)
+    }
+
+
+    const forecastAtual = temForecast ? (() => {
+        const now = new Date()
+        const agoraMins = now.getHours() * 60 + now.getMinutes()
+        const h = String(now.getHours()).padStart(2, "0")
+        const m = String(now.getMinutes()).padStart(2, "0")
+        const entradaAgora = {day: `${h}:${m}`, score: parseFloat(score)}
+
+        const idx = forecast.findIndex(f => parseMins(f.day) >= agoraMins)
+        if (idx > 0) {
+            return [entradaAgora, ...forecast.slice(idx)]
+        }
+        return [entradaAgora, ...forecast]
+    })() : []
+
+    const temForecastAtual = forecastAtual.length > 0
+
+    function calcularMelhorJanela(fc) {
+        let melhor = null
+        let inicio = null
+        let durAtual = 0
+        let melhorDur = 0
+        for (let i = 0; i < fc.length; i++) {
+            if (fc[i].score >= 7) {
+                if (!inicio) inicio = fc[i].day
+                durAtual++
+                if (durAtual > melhorDur) {melhorDur = durAtual; melhor = {inicio, fim: fc[i].day}}
+            } else {inicio = null; durAtual = 0}
+        }
+        return melhor
+    }
+    const melhorJanela = temForecastAtual ? calcularMelhorJanela(forecastAtual) : null
+    const labelsX = temForecastAtual ? (() => {
+        const n = forecastAtual.length
+        return [0, Math.floor(n / 4), Math.floor(n / 2), Math.floor(3 * n / 4), n - 1].map(i => forecastAtual[i].day)
+    })() : ["18h", "20h", "22h", "00h", "02h"]
     return (
         <section
             className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-12 px-5 lg:px-16"
@@ -190,24 +239,30 @@ function Hero({ perfil, data }) {
                                 letterSpacing: "0.04em",
                             }}
                         >
-                            <span>18h</span>
-                            <span>20h</span>
-                            <span>22h</span>
-                            <span>00h</span>
-                            <span>02h</span>
+                            {labelsX.map((l, i) => <span key={i}>{l}</span>)}
                         </div>
                         <div style={{ display: "flex", gap: "2px", height: "16px" }}>
-                            {["m", "r", "m", "r", "g", "g", "g", "g", "g", "m", "m", "g", "r", "g", "m", "r"].map((tipo, i) => {
-                                const cor = tipo === "g" ? "#3dffa0" : tipo === "m" ? "#ffd166" : "#ff5050"
-                                return (
+                            {temForecastAtual
+                                ? forecastAtual.map((f, i) => (
                                     <div key={i} style={{
                                         flex: 1,
                                         borderRadius: "2px",
-                                        background: cor,
+                                        background: scoreCor(f.score),
                                         opacity: 0.7,
                                     }} />
-                                )
-                            })}
+                                  ))
+                                : ["m", "r", "m", "r", "g", "g", "g", "g", "g", "m", "m", "g", "r", "g", "m", "r"].map((tipo, i) => {
+                                    const cor = tipo === "g" ? "var(--c-green)" : tipo === "m" ? "var(--c-yellow)" : "var(--c-red)"
+                                    return (
+                                        <div key={i} style={{
+                                            flex: 1,
+                                            borderRadius: "2px",
+                                            background: cor,
+                                            opacity: 0.7,
+                                        }} />
+                                    )
+                                  })
+                            }
                         </div>
                         <p style={{
                             fontFamily: "var(--font-mono)",
@@ -216,7 +271,12 @@ function Hero({ perfil, data }) {
                             marginTop: "5px",
                             letterSpacing: "0.04em",
                         }}>
-                            Próximas 12 horas · melhor janela: 20h-00h
+                            {temForecastAtual
+                                ? melhorJanela
+                                    ? `Próximas 12 horas · melhor janela: ${melhorJanela.inicio}–${melhorJanela.fim}`
+                                    : "Próximas 12 horas · sem janelas ideais — consulte após esse período"
+                                : "Próximas 12 horas · melhor janela: 20h-00h"
+                            }
                         </p>
                     </div>
 
@@ -690,19 +750,29 @@ function CTA() {
 
 export default function Home({perfil}) {
     const [data, setData] = useState(staticData)
+    const [forecast, setForecast] = useState([])
 
     useEffect(() => {
         async function buscar() {
-            try {
-                const resultado = await fetchScore()
+            const [scoreRes, forecastRes] = await Promise.allSettled([
+                fetchScore(),
+                fetchForecast(),
+            ])
+            if (scoreRes.status === "fulfilled") {
+                const resultado = scoreRes.value
 
                 setData(prev => ({
                     ...prev,
                     meta: { ...resultado.meta, starlinkActive: prev.meta.starlinkActive, affectedImages: prev.meta.affectedImages },
                     scoreFactors: resultado.scoreFactors,
                 }))
-            } catch (e) {
-                console.warn("Home: API indisponível, usando dados estáticos.", e.message)
+            } else {
+                console.warn("Home: /score indisponível, usando dados estáticos.", scoreRes.reason?.message)
+            }
+            if (forecastRes.status === "fulfilled" && forecastRes.value.length > 0) {
+                setForecast(forecastRes.value)
+            } else {
+                console.warn("Home: /forecast indisponível.", forecastRes.reason?.message)
             }
         }
         buscar()
@@ -712,7 +782,7 @@ export default function Home({perfil}) {
 
     return (
         <div className="relative z-10" style={{overflowX: "hidden"}}>
-            <Hero perfil={perfil} data={data} />
+            <Hero perfil={perfil} data={data} forecast={forecast} />
             <StatsBar data={data} />
             <Sobre />
             <Features />

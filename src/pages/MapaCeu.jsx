@@ -3,7 +3,6 @@ import {MapPin, RefreshCw, Camera, Filter, Cpu, Thermometer, Droplets, Gauge, Ey
 import {fetchScore} from '../services/api'
 import staticData from '../data/satellites.json'
 
-// TODO: substituir por fetch à Flask API quando backend estiver no ar: fetch('https://darksky-fiap.duckdns.org/score').then(r => r.json()).then(d => setSensores(d.sensores))
 const SENSORES_MOCK = {
     temperatura: 22.0,
     umidade: 60.0,
@@ -19,7 +18,7 @@ const APIS_MOCK = {
 }
 
 // Painel de sensores
-function PainelSensores({sensores = SENSORES_MOCK, apis = APIS_MOCK}) {
+function PainelSensores({ sensores = SENSORES_MOCK, apis = APIS_MOCK }) {
     return (
         <div style={{
             padding: "1.2rem 1.5rem",
@@ -231,7 +230,6 @@ function MapaCanvas({filtro, satellites}) {
             const map = {
                 Starlink: "rgba(79, 158, 255,",
                 OneWeb: "rgba(247, 127, 0,",
-                Kuiper: "rgba(255, 209, 102,",
             }
             return map[constellation] || "rgba(232, 244, 253,"
         }
@@ -346,7 +344,6 @@ function MapaCanvas({filtro, satellites}) {
             const legendItems = [
                 {label: "Starlink", color: "rgba(79, 158, 255, 0.85)"},
                 {label: "OneWeb", color: "rgba(247, 127, 0, 0.85)"},
-                {label: "Kuiper", color: "rgba(255, 209, 102, 0.8)"},
                 {label: "⚠ < 10min", color: "rgba(255, 80, 80, 0.85)"},
             ]
             legendItems.forEach((item, i) => {
@@ -733,7 +730,9 @@ function LayoutMapa({perfil}) {
 
     const satsVisiveis = filtro === "todos"
         ? satellites
-        : satellites.filter(s => s.constellation.toLowerCase() === filtro)
+        : filtro === "perigo"
+            ? satellites.filter(s => s.danger)
+            : satellites.filter(s => s.constellation.toLowerCase() === filtro)
     
     const rastrosEsperados = satellites.filter(s => s.passesIn <= expSeg / 60 + 5).length
 
@@ -764,13 +763,13 @@ function LayoutMapa({perfil}) {
                         </div>
                         <div className='flex items-center gap-2'>
                             <Filter size={19} style={{color: "var(--c-muted)"}}/>
-                            {["todos", "starlink", "oneweb",].map(f => (
+                            {["todos", "starlink", "oneweb", "perigo"].map(f => (
                                 <button key={f} onClick={() => setFiltro(f)} style={{
                                     fontFamily: "var(--font-mono)", fontSize: "0.7rem", letterSpacing: "0.08em", textTransform: "uppercase",
                                     padding: "3px 10px", borderRadius: "3px", cursor: "pointer",
-                                    border: filtro === f ? "0.5px solid rgba(79, 158, 255, 0.5)" : "0.5px solid rgba(232, 244, 253, 0.1)",
-                                    background: filtro === f ? "rgba(79, 158, 255, 0.1)" : "transparent",
-                                    color: filtro === f ? "var(--c-cyan)" : "rgba(232, 244, 253, 0.35)",
+                                    border: filtro === f ? `0.5px solid ${f === "perigo" ? "rgba(255, 80, 80, 0.5)" : "rgba(79, 158, 255, 0.5)"}` : "0.5px solid rgba(232, 244, 253, 0.1)",
+                                    background: filtro === f ? `${f === "perigo" ? "rgba(255, 80, 80, 0.1)" : "rgba(79, 158, 255, 0.1)"}` : "transparent",
+                                    color: filtro === f ? `${f === "perigo" ? "var(--c-red)" : "var(--c-cyan)"}` : "rgba(232, 244, 253, 0.35)",
                                     transition: "all 0.2s ease",
                                 }}>
                                     {f}
@@ -822,7 +821,7 @@ function LayoutMapa({perfil}) {
                         </p>
                     </div>
                     <div className='flex gap-1 flex-wrap justify-end'>
-                        {["todos", "starlink", "oneweb"].map(f => (
+                        {["todos", "starlink", "oneweb", "perigo"].map(f => (
                             <button key={f} onClick={() => setFiltro(f)} style={{
                                 fontFamily: "var(--font-mono)",
                                 fontSize: "0.6rem",
@@ -831,9 +830,9 @@ function LayoutMapa({perfil}) {
                                 padding: "2px 7px",
                                 borderRadius: "3px",
                                 cursor: "pointer",
-                                border: filtro === f ? "0.5px solid rgba(79, 158, 255, 0.5)" : "0.5px solid rgba(232, 244, 253, 0.1)",
-                                background: filtro === f ? "rgba(79, 158, 255, 0.1)" : "transparent",
-                                color: filtro === f ? "var(--c-cyan)" : "rgba(232, 244, 253, 0.35)",
+                                border: filtro === f ? `0.5px solid ${f === "perigo" ? "rgba(255, 80, 80, 0.5)" : "rgba(79, 158, 255, 0.5)"}` : "0.5px solid rgba(232, 244, 253, 0.1)",
+                                background: filtro === f ? `${f === "perigo" ? "rgba(255, 80, 80, 0.1)" : "rgba(79, 158, 255, 0.1)"}` : "transparent",
+                                color: filtro === f ? `${f === "perigo" ? "var(--c-red)" : "var(--c-cyan)"}` : "rgba(232, 244, 253, 0.35)",
                             }}>
                                 {f}
                             </button>
