@@ -171,6 +171,8 @@ skyaware/
 │   │   ├── Impacto.jsx
 │   │   ├── Sobre.jsx
 │   │   └── PaginaErro.jsx
+│   ├── services/
+│   │   └── api.js
 │   ├── styles/
 │   │   └── global.css
 │   ├── App.jsx

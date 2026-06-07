@@ -1,11 +1,8 @@
 import { useState, useEffect, useRef } from "react"
 import { MapPin, Bell, AlertTriangle, CheckCircle, Clock } from "lucide-react"
-import data from "../data/satellites.json"
+import { fetchScore, fetchForecast, fetchHistory } from "../services/api"
+import staticData from "../data/satellites.json"
 
-// TODO: substituir por fetch à Flask API quando backend estiver no ar:
-// fetch('https://darksky-fiap.duckdns.org/history?limit=200')
-//   .then(r => r.json()).then(d => setHistorico(d))
-// Formato esperado da API: [{ ts: "21:00", score: 8.4 }, ...]
 const HISTORICO_MOCK = [
     { ts: "21:00", score: 8.4 }, { ts: "21:05", score: 8.3 },
     { ts: "21:10", score: 8.5 }, { ts: "21:15", score: 7.8 },
@@ -40,13 +37,13 @@ const HISTORICO_MOCK = [
 ]
 
 // Gráfico
-function GraficoHistorico({ perfil }) {
+function GraficoHistorico({perfil, historico}) {
     const containerRef = useRef(null)
     const [tooltip, setTooltip] = useState(null)
     const [largura, setLargura] = useState(800)
 
     // Labels do eixo X
-    const labelsX = HISTORICO_MOCK
+    const labelsX = historico
         .map((p, i) => ({ ts: p.ts, i }))
         .filter((_, i) => i % 6 === 0)
 
@@ -59,18 +56,18 @@ function GraficoHistorico({ perfil }) {
         return () => obs.disconnect()
     }, [])
 
-    const PAD  = { top: 20, right: 20, bottom: 36, left: 36 }
-    const H    = 180
-    const W    = largura
-    const iW   = W - PAD.left - PAD.right
-    const iH   = H - PAD.top  - PAD.bottom
-    const n    = HISTORICO_MOCK.length
+    const PAD = {top: 20, right: 20, bottom: 36, left: 36}
+    const H = 180
+    const W = largura
+    const iW = W - PAD.left - PAD.right
+    const iH = H - PAD.top  - PAD.bottom
+    const n = historico.length
 
-    function xPos(i) { return PAD.left + (i / (n - 1)) * iW }
-    function yPos(s) { return PAD.top  + iH - (s / 10) * iH }
+    function xPos(i) {return PAD.left + (n > 1 ? (i / (n - 1)) : 0) * iW}
+    function yPos(s) {return PAD.top  + iH - (s / 10) * iH}
 
     // Caminho SVG da linha
-    const path = HISTORICO_MOCK.map((p, i) =>
+    const path = historico.map((p, i) =>
         `${i === 0 ? "M" : "L"} ${xPos(i).toFixed(1)} ${yPos(p.score).toFixed(1)}`
     ).join(" ")
 
@@ -103,7 +100,7 @@ function GraficoHistorico({ perfil }) {
                     </p>
                 </div>
                 <p style={{ fontFamily: "var(--font-mono)", fontSize: "0.68rem", color: "rgba(232,244,253,0.2)" }}>
-                    {HISTORICO_MOCK.length} pontos
+                    {historico.length} pontos
                 </p>
             </div>
 
@@ -176,7 +173,7 @@ function GraficoHistorico({ perfil }) {
                     />
 
                     {/* Pontos */}
-                    {HISTORICO_MOCK.map((p, i) => (
+                    {historico.map((p, i) => (
                         <circle
                             key={i}
                             cx={xPos(i)}
@@ -216,7 +213,7 @@ function GraficoHistorico({ perfil }) {
 
                 {/* Tooltip flutuante */}
                 {tooltip && (() => {
-                    const p = HISTORICO_MOCK[tooltip.idx]
+                    const p = historico[tooltip.idx]
                     const cor = scoreCor(p.score)
                     const left = Math.min(Math.max(tooltip.x / W * 100, 8), 88)
                     return (
@@ -343,6 +340,156 @@ const ALERTAS_DATA = {
     ],
 }
 
+function gerarAlertas(perfil, apiData, forecast, score) {
+    const alertas = []
+    const { satellites = [], scoreFactors } = apiData
+    const scoreNum = parseFloat(score)
+    const satelitesDanger = satellites.filter(s => s.danger)
+    const numSats = satellites.length
+
+    const coberturaPct = Math.round((1 - scoreFactors.matm.value) * 100)
+    const poluicaoPct  = Math.min(Math.round(2 * (1 - scoreFactors.mlum.value) * 100), 100)
+    const B = ((scoreFactors.orbital.value * scoreFactors.orbital.weight) + (scoreFactors.local.value * scoreFactors.local.weight)).toFixed(2)
+
+    // Card 1: Satélites
+    if (satelitesDanger.length > 0) {
+        const nomes  = satelitesDanger.map(s => s.id).join(", ").substring(0, 80)
+        const mais   = satelitesDanger[0]
+        if (perfil === "amador") {
+            alertas.push({
+                tipo: "critico",
+                titulo: `${satelitesDanger.length} satélite(s) passando agora`,
+                descricao: `${satelitesDanger.length > 1 ? "Vários satélites" : "Um satélite"} cruzando o céu com menos de 10 minutos para a passagem sobre você.`,
+                detalhe: `${nomes} · em menos de 10 min · Alt: ${mais.altitude}km`,
+            })
+        } else if (perfil === "fotografo") {
+            alertas.push({
+                tipo: "critico",
+                titulo: `⚠ Rastros garantidos — ${satelitesDanger.length} satélite(s) iminente(s)`,
+                descricao: `Pause agora. ${satelitesDanger.length} objeto(s) com passagem em menos de 10 min. Qualquer exposição acima de 10s registrará rastros.`,
+                detalhe: `${nomes} · Az: ${mais.azimuth}° · El: ${mais.elevation}° · Alt: ${mais.altitude}km · Mag: ${mais.magnitude}`,
+            })
+        } else {
+            alertas.push({
+                tipo: "critico",
+                titulo: `Interferência crítica — ${satelitesDanger.length} objeto(s) iminentes`,
+                descricao: `${satelitesDanger.length} satélite(s) com passagem em menos de 10 minutos. f_orbital impactado diretamente. Afetará observações zenitais imediatamente.`,
+                detalhe: `${nomes} · Az: ${mais.azimuth}° · El: ${mais.elevation}° · Alt: ${mais.altitude}km · Vel: ${mais.velocity}km/s`,
+            })
+        }
+    } else if (numSats > 0) {
+        const proximo = [...satellites].sort((a, b) => a.passesIn - b.passesIn)[0]
+        if (perfil === "amador") {
+            alertas.push({
+                tipo: "atencao",
+                titulo: `${numSats} satélite(s) visível(is) — próximo em ${proximo.passesIn} min`,
+                descricao: `Há satélites no seu céu, mas nenhum vai interferir nos próximos 10 minutos. Boa janela aberta agora.`,
+                detalhe: `${proximo.id} · em ${proximo.passesIn} min · Alt: ${proximo.altitude}km`,
+            })
+        } else if (perfil === "fotografo") {
+            alertas.push({
+                tipo: "atencao",
+                titulo: `${numSats} satélite(s) visível(is) — próxima passagem em ${proximo.passesIn} min`,
+                descricao: `Ainda há janela segura. Planeje exposições longas antes da próxima passagem.`,
+                detalhe: `${proximo.id} · Az: ${proximo.azimuth}° · El: ${proximo.elevation}° · Mag: ${proximo.magnitude} · em ${proximo.passesIn} min`,
+            })
+        } else {
+            alertas.push({
+                tipo: "atencao",
+                titulo: `${numSats} objeto(s) em órbita visível`,
+                descricao: `Constelação ativa mas sem passagens críticas imediatas. Próxima passagem relevante em ${proximo.passesIn} minutos.`,
+                detalhe: `${proximo.id} · Az: ${proximo.azimuth}° · El: ${proximo.elevation}° · Alt: ${proximo.altitude}km · Vel: ${proximo.velocity}km/s · em ${proximo.passesIn} min`,
+            })
+        }
+    } else {
+        if (perfil === "amador") {
+            alertas.push({tipo: "favoravel", titulo: "Céu limpo de satélites agora", descricao: "Nenhum satélite Starlink ou OneWeb detectado. Ótimo momento para observar!", detalhe: "0 satélites · N2YO · agora"})
+        } else if (perfil === "fotografo") {
+            alertas.push({tipo: "favoravel", titulo: "Janela livre — sem rastros previstos", descricao: "Nenhum satélite no campo visível. Ideal para sessões longas sem risco de rastros.", detalhe: "0 satélites · N2YO · agora"})
+        } else {
+            alertas.push({tipo: "favoravel", titulo: "f_orbital máximo — nenhum objeto detectado", descricao: "Hemisfério visível sem satélites detectados. f_orbital atingindo valor ótimo para o período.", detalhe: `f_orbital = ${scoreFactors.orbital.value} · 0 satélites · N2YO · agora`})
+        }
+    }
+
+    // Card 2
+    if (scoreNum >= 7) {
+        if (perfil === "amador") {
+            alertas.push({tipo: "favoravel", titulo: `Noite excelente — score ${score}/10`, descricao: `Céu aberto, pouca poluição luminosa e boa condição orbital. Vale sair agora!`, detalhe: `Score ${score} · Orbital: ${Math.round(scoreFactors.orbital.value * 100)}% · Nuvens: ${coberturaPct}%`})
+        } else if (perfil === "fotografo") {
+            alertas.push({tipo: "favoravel", titulo: `Condições excelentes — score ${score}/10`, descricao: `Seeing bom e transparência alta. Ideal para longas exposições e composições de campo profundo.`, detalhe: `M_atm = ${scoreFactors.matm.value} · M_lum = ${scoreFactors.mlum.value} · f_local = ${scoreFactors.local.value}`})
+        } else {
+            alertas.push({tipo: "favoravel", titulo: `Score ${score}/10 — condições favoráveis`, descricao: `Condições orbitais e atmosféricas favoráveis. B = ${B} × M_atm = ${scoreFactors.matm.value} × M_lum = ${scoreFactors.mlum.value} × 10 = ${score}.`, detalhe: `f_orbital = ${scoreFactors.orbital.value} · M_atm = ${scoreFactors.matm.value} · M_lum = ${scoreFactors.mlum.value} · f_local = ${scoreFactors.local.value}`})
+        }
+    } else if (scoreNum >= 4) {
+        if (perfil === "amador") {
+            alertas.push({tipo: "atencao", titulo: `Condições moderadas — score ${score}/10`, descricao: `O céu não está ideal, mas dá para ver objetos brilhantes. ${coberturaPct}% de nuvens no momento.`, detalhe: `Score ${score} · Nuvens: ${coberturaPct}% · Poluição: ${poluicaoPct}%`})
+        } else if (perfil === "fotografo") {
+            alertas.push({tipo: "atencao", titulo: `Score moderado — ${score}/10`, descricao: `${coberturaPct}% de cobertura detectada. Seeing comprometido. Prefira exposições curtas nesse momento.`, detalhe: `M_atm = ${scoreFactors.matm.value} · M_lum = ${scoreFactors.mlum.value} · f_local = ${scoreFactors.local.value}`})
+        } else {
+            alertas.push({tipo: "atencao", titulo: `Score ${score}/10 — condições moderadas`, descricao: `Janela parcialmente comprometida. B = ${B} com M_atm = ${scoreFactors.matm.value} limitando o score atual.`, detalhe: `f_orbital = ${scoreFactors.orbital.value} · M_atm = ${scoreFactors.matm.value} · M_lum = ${scoreFactors.mlum.value} · f_local = ${scoreFactors.local.value}`})
+        }
+    } else {
+        if (perfil === "amador") {
+            alertas.push({tipo: "critico", titulo: `Condições desfavoráveis — score ${score}/10`, descricao: `Não vale a pena sair agora. Confira a previsão abaixo para encontrar a próxima janela.`, detalhe: `Score ${score} · Nuvens: ${coberturaPct}%`})
+        } else if (perfil === "fotografo") {
+            alertas.push({tipo: "critico", titulo: `Score baixo — ${score}/10`, descricao: `Astrofotografia inviável agora. Cobertura ou poluição luminosa alta. Aguarde próxima janela.`, detalhe: `M_atm = ${scoreFactors.matm.value} · M_lum = ${scoreFactors.mlum.value}`})
+        } else {
+            alertas.push({tipo: "critico", titulo: `Score ${score}/10 — interferência ativa`, descricao: `Condições comprometidas. Cobertura de nuvens: ${coberturaPct}%. Poluição luminosa: ${poluicaoPct}%. Verificar portões de corte.`, detalhe: `f_orbital = ${scoreFactors.orbital.value} · M_atm = ${scoreFactors.matm.value} · M_lum = ${scoreFactors.mlum.value} · f_local = ${scoreFactors.local.value}`})
+        }
+    }
+
+    // Card 3
+    const temForecastHorario = forecast && forecast.length > 0 && forecast[0].day?.includes(":")
+    if (temForecastHorario) {
+        let melhor = null, inicio = null, durAtual = 0, melhorDur = 0, somaScore = 0
+        for (let i = 0; i < forecast.length; i++) {
+            if (forecast[i].score >= 7) {
+                if (!inicio) inicio = forecast[i].day
+                durAtual++; somaScore += forecast[i].score
+                if (durAtual > melhorDur) {melhorDur = durAtual; melhor = {inicio, fim: forecast[i].day, scoreMed: (somaScore / durAtual).toFixed(1)}}
+            } else { inicio = null; durAtual = 0; somaScore = 0 }
+        }
+        if (melhor) {
+            if (perfil === "amador") {
+                alertas.push({tipo: "ideal", titulo: `Melhor janela: ${melhor.inicio} – ${melhor.fim}`, descricao: `Score médio previsto de ${melhor.scoreMed}/10 nesse período. Hora de planejar a saída!`, detalhe: `Score médio ${melhor.scoreMed} · Open-Meteo · próximas horas`})
+            } else if (perfil === "fotografo") {
+                alertas.push({tipo: "ideal", titulo: `Janela ideal: ${melhor.inicio} – ${melhor.fim}`, descricao: `Score médio ${melhor.scoreMed}/10. Transparência prevista alta. Ideal para sessão de longa exposição.`, detalhe: `Score médio ${melhor.scoreMed} · Open-Meteo · próximas horas`})
+            } else {
+                alertas.push({tipo: "ideal", titulo: `Janela prevista: ${melhor.inicio} – ${melhor.fim}`, descricao: `Score projetado médio: ${melhor.scoreMed}/10. Condições favoráveis confirmadas pelo modelo Open-Meteo.`, detalhe: `Score médio ${melhor.scoreMed} · M_atm e M_lum favoráveis · Open-Meteo · próximas horas`})
+            }
+        } else {
+            if (perfil === "amador") {
+                alertas.push({tipo: "atencao", titulo: "Sem janelas ideais nas próximas horas", descricao: "A previsão não mostra períodos com score ≥ 7 nas próximas horas. Verifique mais tarde.", detalhe: "Open-Meteo · sem janela ≥ 7 nas próximas horas"})
+            } else if (perfil === "fotografo") {
+                alertas.push({tipo: "atencao", titulo: "Sem janela limpa nas próximas horas", descricao: "Previsão desfavorável para astrofotografia. Aguarde melhora das condições atmosféricas.", detalhe: "Open-Meteo · sem janela ≥ 7 nas próximas horas"})
+            } else {
+                alertas.push({tipo: "atencao", titulo: "Score projetado abaixo do limiar", descricao: `Modelo Open-Meteo não prevê janelas com score ≥ 7.0 no período analisado. M_atm comprometido.`, detalhe: "Open-Meteo · sem período ≥ 7.0 nas próximas horas"})
+            }
+        }
+    }
+
+    // Card 4
+    if (coberturaPct >= 50) {
+        if (perfil === "amador") {
+            alertas.push({tipo: "atencao", titulo: "Nuvens comprometendo o céu", descricao: `Cobertura de ${coberturaPct}% detectada. O céu está parcialmente encoberto. Aguarde melhora.`, detalhe: `M_atm = ${scoreFactors.matm.value} · cobertura ${coberturaPct}% · Open-Meteo`})
+        } else if (perfil === "fotografo") {
+            alertas.push({tipo: "atencao", titulo: `Frente de nuvens — M_atm = ${scoreFactors.matm.value}`, descricao: `${coberturaPct}% de cobertura. Risco de névoa nas imagens e perda de nitidez em exposições longas.`, detalhe: `M_atm = ${scoreFactors.matm.value} · cobertura ${coberturaPct}% · Open-Meteo`})
+        } else {
+            alertas.push({tipo: "atencao", titulo: `M_atm em queda — cobertura ${coberturaPct}%`, descricao: `Open-Meteo detecta sistema nublado ativo. M_atm = ${scoreFactors.matm.value} limitando o score atual.`, detalhe: `M_atm = ${scoreFactors.matm.value} · cloud_cover = ${coberturaPct}% · Open-Meteo`})
+        }
+    } else if (coberturaPct < 20) {
+        if (perfil === "amador") {
+            alertas.push({tipo: "favoravel", titulo: "Céu aberto — condição atmosférica ótima", descricao: `Apenas ${coberturaPct}% de nuvens. O céu está praticamente limpo agora.`, detalhe: `M_atm = ${scoreFactors.matm.value} · cobertura ${coberturaPct}% · Open-Meteo`})
+        } else if (perfil === "fotografo") {
+            alertas.push({tipo: "favoravel", titulo: `Transparência alta — M_atm = ${scoreFactors.matm.value}`, descricao: `Apenas ${coberturaPct}% de cobertura. Seeing favorável para alta nitidez e longas exposições.`, detalhe: `M_atm = ${scoreFactors.matm.value} · cobertura ${coberturaPct}% · Open-Meteo`})
+        } else {
+            alertas.push({tipo: "favoravel", titulo: `M_atm = ${scoreFactors.matm.value} — transparência alta`, descricao: `Open-Meteo confirma cobertura mínima (${coberturaPct}%). Condição atmosférica contribuindo positivamente para o score.`, detalhe: `M_atm = ${scoreFactors.matm.value} · cloud_cover = ${coberturaPct}% · Open-Meteo`})
+        }
+    }
+
+    return alertas.slice(0, 4)
+}
+
 function getAlertStyle(tipo) {
     const map = {
         critico: {
@@ -358,6 +505,13 @@ function getAlertStyle(tipo) {
             bg: "rgba(255, 209, 102, 0.05)",
             border: "rgba(255, 209, 102, 0.2)",
             label: "Atenção",
+        },
+        favoravel: {
+            icon: CheckCircle,
+            color: "var(--c-green)",
+            bg: "rgba(61, 255, 160, 0.04)",
+            border: "rgba(61, 255, 160, 0.18)",
+            label: "Favorável",
         },
         ideal: {
             icon: CheckCircle,
@@ -441,8 +595,23 @@ function AlertaCard({alerta}) {
 
 // Jnaelas de observção
 
-function JanelasObservacao({perfil}) {
-    const {weekForecast} = data
+function JanelasObservacao({perfil, weekForecast}) {
+    const diasSemana = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"]
+    const hoje = new Date()
+    const diasExibidos = Array.from({length: 7 }, (_, i) => {
+        const data = new Date(hoje)
+        data.setDate(hoje.getDate() + i + 1)
+        const label = i === 0 ? "Amanhã" : diasSemana[data.getDay()]
+        const fonte = weekForecast[i + 1] ?? weekForecast[weekForecast.length - 1]
+        return {...fonte, day: label}
+    })
+
+    function estimarJanela(score) {
+        if (score === 0) return null
+        if (score >= 7) return "20h – 06h"
+        if (score >= 4) return "22h – 02h"
+        return "sem janela ideal"
+    }
 
     return (
         <div style={{marginBottom: "4rem"}}>
@@ -474,7 +643,7 @@ function JanelasObservacao({perfil}) {
                 marginBottom: "1rem",
                 overflowX: "auto",
             }}>
-                {weekForecast.map((dia, i) => {
+                {diasExibidos.map((dia, i) => {
                     const cor = dia.score >= 7
                         ? "var(--c-green)"
                         : dia.score >= 4
@@ -513,19 +682,46 @@ function JanelasObservacao({perfil}) {
                                 fontWeight: 300,
                                 lineHeight: 1,
                                 color: dia.score === 0 ? "var(--c-red)" : cor,
-                                marginBottom: "0.5rem",
+                                marginBottom: "2px",
                             }}>
                                 {dia.score === 0 ? "—" : dia.score.toFixed(1)}
                             </p>
+
+                            {dia.score !== 0 && (
+                                <p style={{
+                                    fontFamily: "var(--font-mono)",
+                                    fontSize: "0.56rem",
+                                    letterSpacing: "0.08em",
+                                    textTransform: "uppercase",
+                                    color: "rgba(232, 244, 253, 0.18)",
+                                    marginBottom: "0.2rem",
+                                    marginTop: "0.7rem"
+                                }}>
+                                    score médio est.
+                                </p>
+                            )}
 
                             <p style={{
                                 fontFamily: "var(--font-mono)",
                                 fontSize: "0.7rem",
                                 color: "rgba(232, 244, 253, 0.25)",
-                                marginBottom: "0.8rem",
+                                marginBottom: "0.4rem",
                             }}>
                                 {dia.clouds}% nuvens
                             </p>
+
+                            {/* Janela estimada */}
+                            {estimarJanela(dia.score) && (
+                                <p style={{
+                                    fontFamily: "var(--font-mono)",
+                                    fontSize: "0.72rem",
+                                    color: "rgba(232, 244, 253, 0.3)",
+                                    letterSpacing: "0.04em",
+                                    marginBottom: "0.5rem",
+                                }}>
+                                    {estimarJanela(dia.score)}
+                                </p>
+                            )}
 
                             {/* Barra score */}
                             <div style={{
@@ -561,7 +757,7 @@ function JanelasObservacao({perfil}) {
 
             {/* Mobile */}
             <div className="lg:hidden flex flex-col gap-3">
-                {weekForecast.map((dia, i) => {
+                {diasExibidos.map((dia, i) => {
                     const cor = dia.score >= 7
                         ? "var(--c-green)"
                         : dia.score >= 4
@@ -611,6 +807,17 @@ function JanelasObservacao({perfil}) {
                                 }}>
                                     {dia.score === 0 ? "—" : dia.score.toFixed(1)}
                                 </p>
+                                {dia.score !== 0 && (
+                                    <p style={{
+                                        fontFamily: "var(--font-mono)",
+                                        fontSize: "0.52rem",
+                                        letterSpacing: "0.06em",
+                                        textTransform: "uppercase",
+                                        color: "rgba(232, 244, 253, 0.18)",
+                                    }}>
+                                        score médio est.
+                                    </p>
+                                )}
                                 <p style={{
                                     fontFamily: "var(--font-mono)",
                                     fontSize: "0.58rem",
@@ -618,6 +825,16 @@ function JanelasObservacao({perfil}) {
                                 }}>
                                     {dia.clouds}% nuvens
                                 </p>
+                                {estimarJanela(dia.score) && (
+                                    <p style={{
+                                        fontFamily: "var(--font-mono)",
+                                        fontSize: "0.65rem",
+                                        color: "rgba(232, 244, 253, 0.3)",
+                                        letterSpacing: "0.03em",
+                                    }}>
+                                        {estimarJanela(dia.score)}
+                                    </p>
+                                )}
                             </div>
                         </div>
                     )
@@ -628,8 +845,7 @@ function JanelasObservacao({perfil}) {
 } 
 
 // Painel de simulação (perfil profissional)
-function PainelSimulacao() {
-    const {scoreFactors} = data
+function PainelSimulacao({scoreFactors}) {
 
     const [nuvens, setNuvens] = useState(10)
     const [poluicao, setPoluicao] = useState(63)
@@ -812,11 +1028,41 @@ function PainelSimulacao() {
 
 // Página
 export default function Alertas({perfil}) {
-    const {meta, scoreFactors} = data
-    const alertas = ALERTAS_DATA[perfil] || ALERTAS_DATA.amador
+    const [apiData, setApiData] = useState(null)
+    const [weekForecast] = useState(staticData.weekForecast)
+    const [forecastHorario, setForecastHorario] = useState([])
+    const [historico, setHistorico] = useState(HISTORICO_MOCK)
+    const {meta, scoreFactors} = apiData || staticData
+
+    useEffect(() => {
+        async function buscar() {
+
+            const [scoreRes, forecastRes, historyRes] = await Promise.allSettled([
+                fetchScore(),
+                fetchForecast(),
+                fetchHistory(200),
+            ])
+
+            if (scoreRes.status === "fulfilled") setApiData(scoreRes.value)
+            else console.warn("Alertas: /score indisponível.", scoreRes.reason?.message)
+
+            if (forecastRes.status === "fulfilled" && forecastRes.value.length > 0) setForecastHorario(forecastRes.value)
+            else console.warn("Alertas: /forecast indisponível.", forecastRes.reason?.message)
+
+            if (historyRes.status === "fulfilled" && historyRes.value.length > 0) setHistorico(historyRes.value)
+            else console.warn("Alertas: /history indisponível.", historyRes.reason?.message)
+        }
+        buscar()
+        const intervalo = setInterval(buscar, 60 * 1000)
+        return () => clearInterval(intervalo)
+    }, [])
 
     const B = (scoreFactors.orbital.value * scoreFactors.orbital.weight) + (scoreFactors.local.value * scoreFactors.local.weight)
     const score = (B * scoreFactors.matm.value * scoreFactors.mlum.value * 10).toFixed(1)
+
+    const alertas = apiData
+        ? gerarAlertas(perfil, apiData, forecastHorario, score)
+        : ALERTAS_DATA[perfil] || ALERTAS_DATA.amador
 
     const perfilLabel = {
         amador: "Astrônomo Amador",
@@ -897,11 +1143,11 @@ export default function Alertas({perfil}) {
                 ))}
             </div>
 
-            <JanelasObservacao perfil={perfil}/>
+            <JanelasObservacao perfil={perfil} weekForecast={weekForecast}/>
 
-            <GraficoHistorico perfil={perfil} />
+            <GraficoHistorico perfil={perfil} historico={historico}/>
 
-            {perfil === "profissional" && <PainelSimulacao/>}
+            {perfil === "profissional" && <PainelSimulacao scoreFactors={scoreFactors}/>}
         </div>
     )
 }
