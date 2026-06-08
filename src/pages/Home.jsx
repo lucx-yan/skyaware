@@ -26,6 +26,7 @@ function Hero({perfil, data, forecast}) {
     }
 
     const temForecast = forecast && forecast.length > 0
+
     function scoreCor(s) {
         if (s >= 7) return "var(--c-green)"
         if (s >= 4) return "var(--c-yellow)"
@@ -36,7 +37,6 @@ function Hero({perfil, data, forecast}) {
         const parts = (t || "00:00").split(":").map(Number)
         return parts[0] * 60 + (parts[1] || 0)
     }
-
 
     const forecastAtual = temForecast ? (() => {
         const now = new Date()
@@ -63,15 +63,18 @@ function Hero({perfil, data, forecast}) {
             if (fc[i].score >= 7) {
                 if (!inicio) inicio = fc[i].day
                 durAtual++
-                if (durAtual > melhorDur) {melhorDur = durAtual; melhor = {inicio, fim: fc[i].day}}
+                if (durAtual > melhorDur) {melhorDur = durAtual; melhor = {inicio, fim: fc[i].day} }
             } else {inicio = null; durAtual = 0}
         }
         return melhor
     }
     const melhorJanela = temForecastAtual ? calcularMelhorJanela(forecastAtual) : null
     const labelsX = temForecastAtual ? (() => {
-        const n = forecastAtual.length
-        return [0, Math.floor(n / 4), Math.floor(n / 2), Math.floor(3 * n / 4), n - 1].map(i => forecastAtual[i].day)
+        const nowH = new Date().getHours()
+        return [0, 3, 6, 9, 12].map(offset => {
+            const h = (nowH + offset) % 24
+            return `${String(h).padStart(2, "0")}:00`
+        })
     })() : ["18h", "20h", "22h", "00h", "02h"]
     return (
         <section
@@ -100,11 +103,11 @@ function Hero({perfil, data, forecast}) {
                         marginBottom: "1.8rem"
                     }}
                 >
-                    <em style={{ fontStyle: "italic", color: "var(--c-muted)" }}>O céu</em>
+                    <em style={{fontStyle: "italic", color: "var(--c-muted)"}}>O céu</em>
                     <br />
-                    <span style={{ fontWeight: 600 }}>que você</span>
+                    <span style={{fontWeight: 600}}>que você</span>
                     <br />
-                    <em style={{ fontStyle: "italic", color: "var(--c-muted)" }}>merece ver.</em>
+                    <em style={{fontStyle: "italic", color: "var(--c-muted)"}}>merece ver.</em>
                 </h1>
 
                 <p className="animate-fade-in-up delay-300"
@@ -760,7 +763,6 @@ export default function Home({perfil}) {
             ])
             if (scoreRes.status === "fulfilled") {
                 const resultado = scoreRes.value
-
                 setData(prev => ({
                     ...prev,
                     meta: { ...resultado.meta, starlinkActive: prev.meta.starlinkActive, affectedImages: prev.meta.affectedImages },
