@@ -5,7 +5,7 @@ import { fetchScore, fetchForecast } from "../services/api"
 import staticData from "../data/satellites.json"
 
 // Hero
-function Hero({perfil, data, forecast}) {
+function Hero({perfil, data, forecast, apiOnline}) {
     const { meta, scoreFactors } = data
     // Cálculo
     const B = (scoreFactors.orbital.value * scoreFactors.orbital.weight) + (scoreFactors.local.value * scoreFactors.local.weight)
@@ -63,7 +63,7 @@ function Hero({perfil, data, forecast}) {
             if (fc[i].score >= 7) {
                 if (!inicio) inicio = fc[i].day
                 durAtual++
-                if (durAtual > melhorDur) {melhorDur = durAtual; melhor = {inicio, fim: fc[i].day} }
+                if (durAtual > melhorDur) {melhorDur = durAtual; melhor = {inicio, fim: fc[i].day}}
             } else {inicio = null; durAtual = 0}
         }
         return melhor
@@ -174,23 +174,25 @@ function Hero({perfil, data, forecast}) {
                                 fontFamily: "var(--font-mono)",
                                 fontSize: "0.6rem",
                                 letterSpacing: "0.1em",
-                                color: "var(--c-cyan)",
-                                background: "rgba(79, 158, 255, 0.08)",
-                                border: "0.5px solid rgba(79, 158, 255, 0.22)",
+                                color: apiOnline ? "var(--c-cyan)" : "rgba(232, 244, 253, 0.3)",
+                                background: apiOnline ? "rgba(79, 158, 255, 0.08)" : "rgba(232, 244, 253, 0.03)",
+                                border: apiOnline ? "0.5px solid rgba(79, 158, 255, 0.22)" : "0.5px solid rgba(232, 244, 253, 0.1)",
                                 borderRadius: "3px",
                                 padding: "4px 10px",
+                                transition: "all 0.5s ease",
                             }}
                         >
                             <span style={{
                                 width: 6,
                                 height: 6,
                                 borderRadius: "50%",
-                                background: "var(--c-green)",
-                                boxShadow: "0 0 5px var(--c-green)",
+                                background: apiOnline ? "var(--c-green)" : "rgba(232, 244, 253, 0.25)",
+                                boxShadow: apiOnline ? "0 0 5px var(--c-green)" : "none",
                                 display: "inline-block",
-                                animation: "blink 2s infinite",
+                                animation: apiOnline ? "blink 2s infinite" : "none",
+                                transition: "all 0.5s ease",
                             }} />
-                            AO VIVO
+                            {apiOnline ? "AO VIVO" : "SIMULADO"}
                         </div>
                     </div>
 
@@ -754,6 +756,7 @@ function CTA() {
 export default function Home({perfil}) {
     const [data, setData] = useState(staticData)
     const [forecast, setForecast] = useState([])
+    const [apiOnline, setApiOnline] = useState(false)
 
     useEffect(() => {
         async function buscar() {
@@ -763,12 +766,14 @@ export default function Home({perfil}) {
             ])
             if (scoreRes.status === "fulfilled") {
                 const resultado = scoreRes.value
+                setApiOnline(true)
                 setData(prev => ({
                     ...prev,
                     meta: { ...resultado.meta, starlinkActive: prev.meta.starlinkActive, affectedImages: prev.meta.affectedImages },
                     scoreFactors: resultado.scoreFactors,
                 }))
             } else {
+                setApiOnline(false)
                 console.warn("Home: /score indisponível, usando dados estáticos.", scoreRes.reason?.message)
             }
             if (forecastRes.status === "fulfilled" && forecastRes.value.length > 0) {
@@ -784,7 +789,7 @@ export default function Home({perfil}) {
 
     return (
         <div className="relative z-10" style={{overflowX: "hidden"}}>
-            <Hero perfil={perfil} data={data} forecast={forecast} />
+            <Hero perfil={perfil} data={data} forecast={forecast} apiOnline={apiOnline} />
             <StatsBar data={data} />
             <Sobre />
             <Features />
