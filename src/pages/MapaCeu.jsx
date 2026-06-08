@@ -248,23 +248,25 @@ function MapaCanvas({filtro, satellites}) {
         function draw() {
             const W = canvas.width
             const H = canvas.height
+            const Hvis = Math.min(H, window.innerHeight - 64 - 65)
+            const cy = Hvis / 2
             ctx.clearRect(0, 0, W, H)
             // Fundo
-            const grd = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, Math.max(W, H) * 0.6)
+            const grd = ctx.createRadialGradient(W/2, cy, 0, W/2, cy, Math.max(W, H) * 0.6)
             grd.addColorStop(0, "rgba(6, 12, 28, 0.95)")
             grd.addColorStop(1, "rgba(3, 5, 12, 0.98)")
             ctx.fillStyle = grd
             ctx.fillRect(0, 0, W, H)
             // Círculo
             ctx.beginPath()
-            ctx.arc(W/2, H/2, Math.min(W, H) * 0.45, 0, Math.PI * 2)
+            ctx.arc(W/2, cy, Math.min(W, Hvis) * 0.35, 0, Math.PI * 2)
             ctx.strokeStyle = "rgba(232, 244, 253, 0.06)"
             ctx.lineWidth = 1
             ctx.stroke()
             // Anéis
             ;[0.25, 0.5, 0.75].forEach(r => {
                 ctx.beginPath()
-                ctx.arc(W/2, H/2, Math.min(W, H) * 0.45 * r, 0, Math.PI * 2)
+                ctx.arc(W/2, cy, Math.min(W, Hvis) * 0.35 * r, 0, Math.PI * 2)
                 ctx.strokeStyle = "rgba(232, 244, 253, 0.025)"
                 ctx.lineWidth = 0.5
                 ctx.stroke()
@@ -273,13 +275,14 @@ function MapaCanvas({filtro, satellites}) {
             ctx.strokeStyle = "rgba(232, 244, 253, 0.035)"
             ctx.lineWidth = 0.5
             ctx.beginPath()
-            ctx.moveTo(W/2, H * 0.04)
-            ctx.lineTo(W/2, H * 0.96)
+            ctx.moveTo(W/2, cy - Hvis * 0.46)
+            ctx.lineTo(W/2, cy + Hvis * 0.46)
             ctx.stroke()
             ctx.beginPath()
-            ctx.moveTo(W * 0.04, H/2)
-            ctx.lineTo(W * 0.96, H/2)
+            ctx.moveTo(W * 0.04, cy)
+            ctx.lineTo(W * 0.96, cy)
             ctx.stroke()
+
             // Estrelas
             stars.forEach(s => {
                 s.a += s.da
@@ -341,6 +344,29 @@ function MapaCanvas({filtro, satellites}) {
                 }
             })
 
+            // Bússola
+            const R = Math.min(W, Hvis) * 0.35
+            ;[
+                {label: "N", angle: -Math.PI / 2, destaque: true },
+                {label: "L", angle: 0, destaque: false},
+                {label: "O", angle: Math.PI, destaque: false},
+                {label: "S", angle: Math.PI / 2, destaque: true },
+            ].forEach(({ label, angle, destaque }) => {
+                ctx.beginPath()
+                ctx.moveTo(W/2 + Math.cos(angle) * (R - 6), cy + Math.sin(angle) * (R - 6))
+                ctx.lineTo(W/2 + Math.cos(angle) * (R + 4), cy + Math.sin(angle) * (R + 4))
+                ctx.strokeStyle = destaque ? "rgba(79, 158, 255, 0.45)" : "rgba(232, 244, 253, 0.15)"
+                ctx.lineWidth = destaque ? 1.5 : 1
+                ctx.stroke()
+                ctx.font = `${destaque ? "bold " : ""}11px Space Mono, monospace`
+                ctx.fillStyle = destaque ? "rgba(79, 158, 255, 0.7)" : "rgba(232, 244, 253, 0.3)"
+                ctx.textAlign = "center"
+                ctx.textBaseline = "middle"
+                ctx.fillText(label, W/2 + Math.cos(angle) * (R + 18), cy + Math.sin(angle) * (R + 18))
+            })
+            ctx.textAlign = "left"
+            ctx.textBaseline = "alphabetic"
+
             const legendItems = [
                 {label: "Starlink", color: "rgba(79, 158, 255, 0.85)"},
                 {label: "OneWeb", color: "rgba(247, 127, 0, 0.85)"},
@@ -348,12 +374,14 @@ function MapaCanvas({filtro, satellites}) {
             ]
             legendItems.forEach((item, i) => {
                 ctx.beginPath()
-                ctx.arc(14, H - 72 + i * 14, 3, 0, Math.PI * 2)
+                ctx.arc(14, 16 + i * 16, 3, 0, Math.PI * 2)
                 ctx.fillStyle = item.color
                 ctx.fill()
-                ctx.font = "13px Space Mono, monospace"
+                ctx.font = "11px Space Mono, monospace"
+                ctx.textAlign = "left"
+                ctx.textBaseline = "middle"
                 ctx.fillStyle = "rgba(232, 244, 253, 0.3)"
-                ctx.fillText(item.label, 24, H - 68 + i * 14)
+                ctx.fillText(item.label, 24, 16 + i * 16)
             })
 
             animId = requestAnimationFrame(draw)
@@ -687,6 +715,13 @@ function SidebarConteudo({perfil, score, status, scoreFactors, satsVisiveis, exp
     )
 }
 
+const FILTRO_LABELS = {
+    todos:   "Todos",
+    starlink: "Starlink",
+    oneweb:  "OneWeb",
+    perigo:  "Satélites Chegando",
+}
+
 function LayoutMapa({perfil}) {
     const [filtro, setFiltro] = useState("todos")
     const [expSeg, setExpSeg] = useState(30)
@@ -697,8 +732,8 @@ function LayoutMapa({perfil}) {
     const sensores = apiData?.sensores || SENSORES_MOCK
     const apis = apiData ? {
         fOrbital: {pct: Math.round(apiData.scoreFactors.orbital.value * 100), label: `Qualidade orbital · ${apiData.scoreFactors.orbital.value >= 0.7 ? "Excelente" : "Moderada"}`, sub: "Starlink sobre o observador (N2YO)"},
-        mAtm:     {pct: Math.round((1 - apiData.scoreFactors.matm.value) * 100), label: "Cobertura de nuvens", sub: `M_atm = ${apiData.scoreFactors.matm.value.toFixed(3)}`},
-        mLum:     {pct: Math.min(Math.round((1 - apiData.scoreFactors.mlum.value) * 200), 100), label: "Poluição luminosa", sub: `M_lum = ${apiData.scoreFactors.mlum.value.toFixed(3)}`},
+        mAtm: {pct: Math.round((1 - apiData.scoreFactors.matm.value) * 100), label: "Cobertura de nuvens", sub: `M_atm = ${apiData.scoreFactors.matm.value.toFixed(3)}`},
+        mLum: {pct: Math.min(Math.round((1 - apiData.scoreFactors.mlum.value) * 200), 100), label: "Poluição luminosa", sub: `M_lum = ${apiData.scoreFactors.mlum.value.toFixed(3)}`},
         fLocal:   {valor: apiData.scoreFactors.local.value, label: "Fator local combinado", sub: "Hum + Press + LDR"},
     } : APIS_MOCK
 
@@ -772,7 +807,7 @@ function LayoutMapa({perfil}) {
                                     color: filtro === f ? `${f === "perigo" ? "var(--c-red)" : "var(--c-cyan)"}` : "rgba(232, 244, 253, 0.35)",
                                     transition: "all 0.2s ease",
                                 }}>
-                                    {f}
+                                    {FILTRO_LABELS[f]}
                                 </button>
                             ))}
                         </div>
@@ -834,7 +869,7 @@ function LayoutMapa({perfil}) {
                                 background: filtro === f ? `${f === "perigo" ? "rgba(255, 80, 80, 0.1)" : "rgba(79, 158, 255, 0.1)"}` : "transparent",
                                 color: filtro === f ? `${f === "perigo" ? "var(--c-red)" : "var(--c-cyan)"}` : "rgba(232, 244, 253, 0.35)",
                             }}>
-                                {f}
+                                {FILTRO_LABELS[f]}
                             </button>
                         ))}
                     </div>
