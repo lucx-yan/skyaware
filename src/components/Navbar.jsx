@@ -22,11 +22,32 @@ const PROFILE_CONFIG = {
 export default function Navbar({profile, onProfileChange}) {
     const [scrolled, setScrolled] = useState(false)
     const [menuOpen, setMenuOpen] = useState(false)
+    const [apiOnline, setApiOnline] = useState(false)
 
     useEffect(() => {
         const onScroll = () =>  setScrolled(window.scrollY > 40)
         window.addEventListener('scroll', onScroll, {passive: true})
         return () => window.removeEventListener('scroll', onScroll)
+    }, [])
+
+    // Verifica se o backend está respondendo
+    useEffect(() => {
+        async function checarApi() {
+            try {
+                const controller = new AbortController()
+                const timer = setTimeout(() => controller.abort(), 5000)
+                const res = await fetch("https://darksky-fiap.duckdns.org/score", {
+                    signal: controller.signal,
+                })
+                clearTimeout(timer)
+                setApiOnline(res.ok)
+            } catch {
+                setApiOnline(false)
+            }
+        }
+        checarApi()
+        const intervalo = setInterval(checarApi, 60 * 1000)
+        return () => clearInterval(intervalo)
     }, [])
 
     const currentProfile = PROFILE_CONFIG[profile]
@@ -94,8 +115,6 @@ export default function Navbar({profile, onProfileChange}) {
                     ))}
                 </nav>
 
-
-
                 {/* Perfil e status */}
                 <div className="hidden lg:flex items-center gap-4 flex-shrink-0">
                     {profile && (
@@ -130,28 +149,30 @@ export default function Navbar({profile, onProfileChange}) {
                         </button>
                     )}
 
+                    {/* Badge de status da API */}
                     <div className="flex items-center gap-2"
                         style={{
                             fontFamily: "var(--font-mono)",
                             fontSize: "0.65rem",
                             letterSpacing: "0.1em",
-                            color: "rgba(232, 244, 253, 0.4)",
+                            color: apiOnline ? "rgba(61, 255, 160, 0.6)" : "rgba(255, 80, 80, 0.5)",
+                            transition: "color 0.5s ease",
                         }}
                     >
-                        <span
-                            style={{
-                                width: 7,
-                                height: 7,
-                                borderRadius: "50%",
-                                background: "var(--c-green)",
-                                boxShadow: "0 0 6px var(--c-green)",
-                                display: "inline-block",
-                                animation: "blink 2s infinite",
-                            }}    
-                        />
-                        SISTEMA ATIVO
+                        <span style={{
+                            width: 7,
+                            height: 7,
+                            borderRadius: "50%",
+                            background: apiOnline ? "var(--c-green)" : "var(--c-red)",
+                            boxShadow: apiOnline ? "0 0 6px var(--c-green)" : "0 0 4px var(--c-red)",
+                            display: "inline-block",
+                            animation: apiOnline ? "blink 2s infinite" : "none",
+                            transition: "background 0.5s ease, box-shadow 0.5s ease",
+                        }} />
+                        {apiOnline ? "DADOS AO VIVO" : "DADOS SIMULADOS"}
                     </div>
                 </div>
+
                 {/* Botão hambúguer para mobile */}
                 <button
                     className="lg:hidden flex flex-col justify-center gap-1.5 p-2"
