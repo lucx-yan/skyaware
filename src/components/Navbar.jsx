@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
+import { MapPin } from "lucide-react";
 
 // Links de Navegação
 const NAV_LINKS = [
@@ -19,7 +20,7 @@ const PROFILE_CONFIG = {
     profissional: {label: "Profissional", color: "var(--c-orange)"}
 }
 
-export default function Navbar({profile, onProfileChange}) {
+export default function Navbar({profile, onProfileChange, localizacao, onLocalizacaoChange}) {
     const [scrolled, setScrolled] = useState(false)
     const [menuOpen, setMenuOpen] = useState(false)
     const [apiOnline, setApiOnline] = useState(false)
@@ -117,6 +118,36 @@ export default function Navbar({profile, onProfileChange}) {
 
                 {/* Perfil e status */}
                 <div className="hidden lg:flex items-center gap-4 flex-shrink-0">
+                    {/* Botão de localização */}
+                    {localizacao && (
+                        <button
+                            onClick={onLocalizacaoChange}
+                            className="flex items-center gap-2 transition-opacity duration-200 hover:opacity-70"
+                            style={{
+                                background: "transparent",
+                                border: "0.5px solid rgba(79, 158, 255, 0.15)",
+                                borderRadius: "4px",
+                                padding: "0.3rem 0.8rem",
+                                cursor: "pointer",
+                            }}
+                            title="Trocar localização"
+                        >
+                            <MapPin size={11} color="var(--c-cyan)" strokeWidth={1.5} style={{flexShrink: 0}} />
+                            <span style={{
+                                fontFamily: "var(--font-mono)",
+                                fontSize: "0.7rem",
+                                letterSpacing: "0.08em",
+                                color: "rgba(79, 158, 255, 0.6)",
+                                maxWidth: "120px",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                            }}>
+                                {localizacao.city}
+                            </span>
+                        </button>
+                    )}
+
                     {profile && (
                         <button
                             onClick={onProfileChange}
@@ -130,7 +161,7 @@ export default function Navbar({profile, onProfileChange}) {
                             }}
                         >
                             <span style={{
-                                width: 6, 
+                                width: 6,
                                 height: 6,
                                 borderRadius: "50%",
                                 background: currentProfile.color,
@@ -226,6 +257,30 @@ export default function Navbar({profile, onProfileChange}) {
                             {link.label}
                         </NavLink>
                     ))}
+                    {/* Trocar localização no mobile */}
+                    {localizacao && (
+                        <button
+                            onClick={() => {setMenuOpen(false); onLocalizacaoChange();}}
+                            style={{
+                                background: "transparent",
+                                border: "0.5px solid rgba(79, 158, 255, 0.15)",
+                                borderRadius: "4px",
+                                padding: "0.5rem 1rem",
+                                cursor: "pointer",
+                                fontFamily: "var(--font-mono)",
+                                fontSize: "0.65em",
+                                letterSpacing: "0.1em",
+                                color: "rgba(79, 158, 255, 0.5)",
+                                textAlign: "left",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "0.5rem",
+                            }}
+                        >
+                            <MapPin size={11} strokeWidth={1.5} />
+                            {localizacao.city}
+                        </button>
+                    )}
                     {/* Trocar perfil no mobile */}
                     {profile && (
                         <button

@@ -5,8 +5,9 @@ import { fetchScore, fetchForecast } from "../services/api"
 import staticData from "../data/satellites.json"
 
 // Hero
-function Hero({perfil, data, forecast, apiOnline}) {
+function Hero({perfil, data, forecast, apiOnline, localizacao}) {
     const { meta, scoreFactors } = data
+    const cidadeExibida = localizacao?.city ?? meta.location
     // Cálculo
     const B = (scoreFactors.orbital.value * scoreFactors.orbital.weight) + (scoreFactors.local.value * scoreFactors.local.weight)
     const score = (B * scoreFactors.matm.value * scoreFactors.mlum.value * 10).toFixed(1)
@@ -165,7 +166,7 @@ function Hero({perfil, data, forecast, apiOnline}) {
                                 }}
                             >
                                 <MapPin size={12} />
-                                {meta.location} - agora
+                                {cidadeExibida} - agora
                             </p>
                         </div>
 
@@ -753,7 +754,7 @@ function CTA() {
     )
 }
 
-export default function Home({perfil}) {
+export default function Home({perfil, localizacao}) {
     const [data, setData] = useState(staticData)
     const [forecast, setForecast] = useState([])
     const [apiOnline, setApiOnline] = useState(false)
@@ -785,11 +786,11 @@ export default function Home({perfil}) {
         buscar()
         const intervalo = setInterval(buscar, 60 * 1000)
         return () => clearInterval(intervalo)
-    }, [])
+    }, [localizacao])
 
     return (
         <div className="relative z-10" style={{overflowX: "hidden"}}>
-            <Hero perfil={perfil} data={data} forecast={forecast} apiOnline={apiOnline} />
+            <Hero perfil={perfil} data={data} forecast={forecast} apiOnline={apiOnline} localizacao={localizacao} />
             <StatsBar data={data} />
             <Sobre />
             <Features />

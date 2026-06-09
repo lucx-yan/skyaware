@@ -82,6 +82,16 @@ function transformHistory(raw) {
 
 
 // Funções de fetch exportadas
+export async function setBackendLocation({lat,lon}) {
+    const res = await fetch(`${API_BASE}/location`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({lat,lon}),
+        signal: AbortSignal.timeout(10000),
+    })
+    if (!res.ok) throw new Error(`/location retornou HTTP ${res.status}`)
+    return await res.json()
+}
 
 // Busca score atual + satélites + telemetria ESP32
 export async function fetchScore() {

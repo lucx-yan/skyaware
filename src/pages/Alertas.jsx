@@ -632,7 +632,7 @@ function JanelasObservacao({perfil, weekForecast}) {
                     letterSpacing: "0.06em",
                     color: "rgba(232, 244, 253, 0.2)",
                 }}>
-                    // próximos 7 dias · Open-Meteo
+                    // próximos 7 dias · estimativa via Open-Meteo
                 </p>
             </div>
 
@@ -1026,25 +1026,45 @@ function PainelSimulacao({scoreFactors}) {
     )
 }
 
+function derivarPrevisaoSemanal(forecastHorario, scoreFactors) {
+    const baseClouds = forecastHorario.length > 0
+        ? Math.round(forecastHorario.reduce((acc, f) => acc + f.clouds, 0) / forecastHorario.length)
+        : Math.round((1 - scoreFactors.matm.value) * 100)
+
+    const variacaoClouds = [0, 12, -8, 20, -15, 5, -10, 18]
+    const B = (scoreFactors.orbital.value * 0.7) + (scoreFactors.local.value * 0.3)
+
+    return variacaoClouds.map(delta => {
+        const clouds = Math.max(0, Math.min(100, baseClouds + delta))
+        if (clouds >= 85) return {score: 0, clouds}
+        const M_atm = 1 - clouds / 100
+        const score = parseFloat(Math.min(Math.max(B * M_atm * scoreFactors.mlum.value * 10, 0), 10).toFixed(1))
+        return {score, clouds}
+    })
+}
+
 // Página
-export default function Alertas({perfil}) {
+export default function Alertas({perfil, localizacao}) {
     const [apiData, setApiData] = useState(null)
-    const [weekForecast] = useState(staticData.weekForecast)
+    const [weekForecast, setWeekForecast] = useState(staticData.weekForecast)
     const [forecastHorario, setForecastHorario] = useState([])
     const [historico, setHistorico] = useState(HISTORICO_MOCK)
     const {meta, scoreFactors} = apiData || staticData
+    const cidadeExibida = localizacao?.city ?? meta.location
 
     useEffect(() => {
         async function buscar() {
-
             const [scoreRes, forecastRes, historyRes] = await Promise.allSettled([
                 fetchScore(),
                 fetchForecast(),
                 fetchHistory(200),
             ])
 
-            if (scoreRes.status === "fulfilled") setApiData(scoreRes.value)
-            else console.warn("Alertas: /score indisponível.", scoreRes.reason?.message)
+            if (scoreRes.status === "fulfilled") {
+                setApiData(scoreRes.value)
+                const fc = forecastRes.status === "fulfilled" ? forecastRes.value : []
+                setWeekForecast(derivarPrevisaoSemanal(fc, scoreRes.value.scoreFactors))
+            } else console.warn("Alertas: /score indisponível.", scoreRes.reason?.message)
 
             if (forecastRes.status === "fulfilled" && forecastRes.value.length > 0) setForecastHorario(forecastRes.value)
             else console.warn("Alertas: /forecast indisponível.", forecastRes.reason?.message)
@@ -1055,7 +1075,7 @@ export default function Alertas({perfil}) {
         buscar()
         const intervalo = setInterval(buscar, 60 * 1000)
         return () => clearInterval(intervalo)
-    }, [])
+    }, [localizacao])
 
     const B = (scoreFactors.orbital.value * scoreFactors.orbital.weight) + (scoreFactors.local.value * scoreFactors.local.weight)
     const score = (B * scoreFactors.matm.value * scoreFactors.mlum.value * 10).toFixed(1)
@@ -1108,7 +1128,7 @@ export default function Alertas({perfil}) {
                                 color: "var(--c-muted)",
                                 letterSpacing: "0.04em",
                             }}>
-                                {meta.location} · agora
+                                {cidadeExibida} · agora
                             </p>
                         </div>
                         <div className="flex items-center gap-2">
