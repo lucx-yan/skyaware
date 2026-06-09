@@ -1,154 +1,220 @@
-# 🌌 SkyAware
+# SkyAware — Plataforma Web de Inteligência Orbital
+### Front-End Development & Web Development · Global Solution 2026 · FIAP
 
-**Plataforma de inteligência orbital para astronomia cidadã.**
-
-O SkyAware calcula o **Sky Observation Score** — um índice de 0 a 10 — em tempo real, cruzando dados de satélites via N2YO API com poluição luminosa (VIIRS/NASA) e condições atmosféricas (Open-Meteo). O sistema integra sensores físicos via ESP32 e entrega uma resposta simples para astrônomos, astrofotógrafos e entusiastas: **vale a pena observar agora?**
-
-> FIAP — Engenharia de Software · 1ESPA · Global Solution 2026
+> Interface web de inteligência orbital para astronomia cidadã. Consome dados físicos coletados pelo ESP32 e informações orbitais em tempo real para calcular e exibir o **Sky Observation Score** — um índice de 0 a 10 que indica a qualidade do céu para observação astronômica. Inclui mapa estelar ao vivo, alertas dinâmicos, previsão das próximas 12 horas e sistema de localização do usuário.
 
 ---
 
-## 🔗 Links
+## Equipe — 1ESPA
 
-| | |
+| Nome | RM |
 |---|---|
-| **Repositório** | https://github.com/lucx-yan/skyaware |
-| **Deploy** | https://lucx-yan.github.io/skyaware |
+| Yan Lucas Gonçalves da Silva | 567046 |
+| João Victor Melo Santos | 566640 |
+| Murilo Jeronimo Ferreira Nunes | 560641 |
+| Vinicius Kozonoe Guaglini | 567264 |
+| Bruno Santos Castilho | 566799 |
 
 ---
 
-## 👥 Equipe
+## Links
 
-| Nome completo | RM | Disciplinas |
+| Recurso | Link |
+|---|---|
+| Deploy (GitHub Pages) | https://lucx-yan.github.io/skyaware |
+| Repositório GitHub | https://github.com/lucx-yan/skyaware |
+| Repositório Edge Computing | https://github.com/JoaoVictorMelo10/skyaware-edge-computing |
+
+---
+
+## O Problema
+
+Desde 2019, constelações como Starlink (SpaceX), Kuiper (Amazon) e OneWeb colocaram mais de 6.000 satélites em órbita baixa. Cada satélite reflete luz solar e aparece como rastro nas fotografias astronômicas. O Vera C. Rubin Observatory estima que até **30% de suas imagens científicas** de longa exposição já são contaminadas.
+
+O problema não é só orbital — condições físicas locais como umidade alta, pressão instável e poluição luminosa também inviabilizam uma sessão de observação. O astrônomo amador ou fotógrafo noturno precisava de uma ferramenta que cruzasse todas essas variáveis e respondesse de forma clara:
+
+> **Vale a pena observar agora?**
+
+---
+
+## Por que Front-End é essencial aqui
+
+Os dados orbitais brutos — coordenadas de satélites, índices atmosféricos, leituras de sensores — são inúteis sem uma interface que os transforme em decisões compreensíveis. O SkyAware é a camada de inteligência visual que:
+
+- Traduz a fórmula híbrida `Score = B × M_atm × M_lum × 10` em um índice visual com cor e linguagem natural
+- Exibe os satélites Starlink e OneWeb em movimento real sobre o horizonte do usuário via Canvas API — algo impossível de comunicar em texto
+- Adapta o nível de detalhe ao perfil do usuário (amador, fotógrafo, profissional) sem expor complexidade desnecessária
+- Detecta automaticamente se o backend está respondendo e troca entre dados ao vivo e simulados sem quebrar a experiência
+- Contextualiza a localização do usuário — São Paulo e Roma têm qualidades de céu completamente diferentes
+
+Sem a camada de front-end, a DarkSky Station seria um terminal de texto inacessível ao público que o projeto pretende alcançar.
+
+---
+
+## Arquitetura da Aplicação
+
+```
+Usuário (Browser)
+    │
+    ├── GitHub Pages — SPA React 19 + Vite (estático, sempre disponível)
+    │       │
+    │       ├── LocalizacaoModal   → Nominatim API (geocoding, OpenStreetMap)
+    │       │
+    │       ├── src/services/api.js → Flask API (Azure VM)
+    │       │       ├── GET /score     → score + satélites + sensores ESP32
+    │       │       ├── GET /forecast  → previsão horária Open-Meteo
+    │       │       └── GET /history   → histórico SQLite
+    │       │
+    │       └── Fallback automático → src/data/satellites.json
+    │                                  (quando a VM estiver offline)
+    │
+    └── Badge DADOS AO VIVO / SIMULADOS (health check feito a cada 60s)
+```
+
+O frontend nunca quebra. Se o backend estiver offline, os dados estáticos de fallback são exibidos automaticamente e o badge **DADOS SIMULADOS** comunica o estado para o usuário.
+
+---
+
+## Sky Observation Score — Visualização da Fórmula
+
+O cálculo é feito inteiramente pelo backend Python. O frontend recebe o score e os fatores individuais e os exibe com contexto visual:
+
+```
+Score = B × M_atm × M_lum × 10       [0 a 10]
+
+B         = (f_orbital × 0.7) + (f_local × 0.3)
+f_orbital → N2YO: densidade de satélites sobre o observador
+f_local   → ESP32: umidade + pressão + escuridão (LDR)
+M_atm     → Open-Meteo: cobertura de nuvens
+M_lum     → Bortle Scale: poluição luminosa por localização
+```
+
+| Score | Status exibido | Cor |
 |---|---|---|
-| Bruno Castilho | RM566799 | Front-End Design, Web Development |
-| João Victor Melo | RM566640 | Edge Computing & IoT, Cálculos (DPS), Storytelling |
-| Murilo Jeronimo | RM560641 | Front-End Design, Web Development, Edge Computing & IoT |
-| Vinicius Kozonoe | RM564264 | Computational Thinking com Python, Cálculos (DPS), Storytelling |
-| Yan Lucas Gonçalves | RM567046 | Front-End Design, Web Development, Software & TXD |
+| ≥ 7.0 | Janela ideal de observação | Verde |
+| 4.0 – 6.9 | Condições moderadas | Amarelo |
+| < 4.0 | Condições desfavoráveis | Vermelho |
 
 ---
 
-## 📋 Sobre o projeto
+## Funcionalidades
 
-O SkyAware opera em quatro camadas interdependentes:
+### Sistema de Perfis
+Três modos de visualização selecionáveis na entrada do site. Alteram o nível de detalhe exibido em todas as páginas sem recarregar.
 
-- **Orbital** — dados de satélites em tempo real via N2YO API, poluição luminosa via VIIRS/NASA (BORTLE_MAP) e cobertura de nuvens via Open-Meteo API
-- **Analítica** — backend Python + Flask calcula o score híbrido completo (`Score = B × M_atm × M_lum × 10`) e expõe endpoints REST via HTTPS
-- **Edge** — ESP32 coleta dados físicos locais (temperatura, umidade, pressão, luminosidade) via MQTT ao FIWARE Orion CB e executa comandos de LED
-- **Interface** — dashboard React com 7 páginas, adaptação por perfil de usuário (Amador, Fotógrafo, Profissional) e mapa estelar interativo
-
-### Fórmula híbrida
-
-```
-B = (f_orbital × 0.7) + (f_local × 0.3)
-Score = B × M_atm × M_lum × 10
-
-Portões de corte:
-  nuvens ≥ 85%   → Score = 0.0  (céu inviável)
-  poluição ≥ 90% → Score = 1.0  (nota mínima)
-```
-
-### Páginas
-
-| Rota | Descrição |
+| Perfil | O que muda |
 |---|---|
-| `/` | Home com Score Card ao vivo, previsão de 12h e previsão semanal |
-| `/problema` | O problema da poluição orbital e linha do tempo |
-| `/como-funciona` | Arquitetura do sistema e explicação do score |
-| `/mapa-ceu` | Mapa estelar interativo com satélites em tempo real |
-| `/alertas` | Alertas ativos e painel de simulação (perfil Profissional) |
-| `/impacto` | Impacto da poluição orbital e comparativo com/sem SkyAware |
-| `/sobre` | Equipe e stack tecnológico |
+| Astrônomo Amador | Score geral, linguagem simplificada, previsão semanal |
+| Astrofotógrafo | Rastros esperados por tempo de exposição, melhor janela |
+| Profissional | Fórmula híbrida completa, dados brutos das APIs, sensores ESP32 |
 
-### Perfis de usuário
+### Localização do Usuário
+Modal que solicita permissão de geolocalização do browser (`navigator.geolocation`). Se aceita, usa reverse geocoding via Nominatim (OpenStreetMap) para exibir o nome da cidade. Se recusada ou der erro, oferece busca manual com debounce de 600ms e sugestões em tempo real. Localização persistida em `localStorage` — para não perguntar em visitas futuras. Botão de troca disponível na Navbar.
 
-O sistema possui onboarding com seleção de perfil. Cada perfil adapta o conteúdo do site:
+> Rate limit do Nominatim respeitado: debounce no campo de busca e header `User-Agent: SkyAware-FIAP/1.0` em todas as requisições.
 
-| Perfil | Foco |
+### Sky Observation Score ao Vivo
+Card principal com score 0–10, indicador de status por cor, fatores individuais (Orbital, M_atm, M_lum, ESP32) com barras de progresso animadas e badge **AO VIVO / SIMULADO** dinâmico. Atualiza a cada 60 segundos via `setInterval`.
+
+### Forecast Bar — Próximas 12 Horas
+Barra de segmentos coloridos representando a qualidade do céu hora a hora, com 5 labels de horário sempre calculados como `hora_atual + 0h, +3h, +6h, +9h, +12h`:
+
+```js
+const nowH = new Date().getHours()
+return [0, 3, 6, 9, 12].map(offset => {
+    const h = (nowH + offset) % 24     // trata virada de meia-noite
+    return `${String(h).padStart(2, "0")}:00`
+})
+```
+
+Calcula e exibe automaticamente a melhor janela de observação dentro do período.
+
+### Mapa Estelar ao Vivo — Canvas API
+Canvas animado 60fps com:
+- Estrelas com brilho oscilante procedural
+- Satélites Starlink (azul) e OneWeb (laranja) em movimento com rastros de trajetória
+- Marcação em vermelho para satélites a menos de 10 minutos do observador
+- Bússola N/S/L/O desenhada após os satélites
+- Legenda fixa no topo esquerdo
+
+Filtros: Todos · Starlink · OneWeb · Satélites Chegando
+
+### Alertas Dinâmicos
+4 cards gerados em tempo real pela função `gerarAlertas()` com base nos dados da API:
+
+| Card | Dado usado | Tipos possíveis |
+|---|---|---|
+| Interferência de satélites | `satelites.danger` | Crítico / Atenção / Favorável |
+| Score atual | `skyScore` | Crítico / Atenção / Favorável |
+| Melhor janela | `forecastHorario` | Ideal (com HH:MM–HH:MM) / sem janelas |
+| Condição atmosférica | `nuvens %` | Atenção (≥50%) / Favorável (<20%) |
+
+### Badge de Status da API
+Presente na Navbar e no card principal da Home. Realiza health check ao endpoint `/score` a cada 60s com timeout de 5s via `AbortController`.
+
+```
+🟢 DADOS AO VIVO   → backend respondeu com status 200
+🔴 DADOS SIMULADOS → timeout, erro de rede ou status != 200
+```
+
+### Responsividade
+Layout completamente adaptado para mobile, tablet e desktop. Navbar com menu hambúrguer animado em mobile. Mapa estelar redimensionado via `ResizeObserver`. Sidebar do mapa vira seções empilhadas em telas pequenas.
+
+---
+
+## Design System
+
+Variáveis CSS centralizadas em `src/styles/global.css`:
+
+```css
+/* Cores semânticas */
+--c-cyan:    #4F9EFF   /* destaques, links, Starlink       */
+--c-green:   #3DFFA0   /* status positivo, janela ideal    */
+--c-yellow:  #FFB830   /* status moderado, atenção         */
+--c-red:     #FF5050   /* status crítico, satélites danger */
+--c-orange:  #F77F00   /* perfil profissional, OneWeb      */
+--c-white:   #E8F4FD   /* texto principal                  */
+--c-muted:   rgba(232, 244, 253, 0.35)  /* texto secundário */
+
+/* Tipografia */
+--font-display: Syne        /* headings e scores numéricos */
+--font-mono:    Space Mono  /* labels, badges, dados       */
+--font-body:    Inter       /* texto corrido               */
+```
+
+
+---
+
+## Integração com o Backend
+
+O frontend consome a Flask API desenvolvida no projeto de Edge Computing via `src/services/api.js`. Todas as chamadas usam `Promise.allSettled` — falhas individuais não quebram a página.
+
+| Endpoint | Dado consumido | Componente |
+|---|---|---|
+| `GET /score` | Score, fatores, satélites, sensores | Home, MapaCeu, Alertas |
+| `GET /forecast` | Previsão horária de score | Home (forecast bar), Alertas |
+| `GET /history?limit=N` | Série temporal do score | Alertas (gráfico histórico) |
+
+Intervalo de atualização: **60 segundos** em todos os componentes.
+
+---
+
+## Stack
+
+| Camada | Tecnologia |
 |---|---|
-| **Astrônomo Amador** | Score geral, previsão semanal, o que observar |
-| **Astrofotógrafo** | Risco de rastros, seeing, melhor janela de exposição |
-| **Astrônomo Profissional** | Fórmula híbrida completa, dados brutos das APIs, painel de simulação |
-
-> Não há sistema de login ou senhas. O perfil é salvo localmente no `localStorage` do navegador.
-
----
-
-## 🚀 Instalação e execução
-
-### Pré-requisitos
-
-- [Node.js](https://nodejs.org/) v18 ou superior
-- npm v9 ou superior
-
-### Passo a passo
-
-**1. Clone o repositório:**
-```bash
-git clone https://github.com/lucx-yan/skyaware.git
-cd skyaware
-```
-
-**2. Instale as dependências:**
-```bash
-npm install
-```
-
-**3. Execute em modo de desenvolvimento:**
-```bash
-npm run dev
-```
-
-O projeto estará disponível em `http://localhost:5173/skyaware/`
-
-**4. Para gerar a build de produção:**
-```bash
-npm run build
-```
-
-**5. Para fazer o deploy no GitHub Pages:**
-```bash
-npm run deploy
-```
+| Framework | React 19 + Vite |
+| Estilo | Tailwind CSS + CSS Variables |
+| Roteamento | React Router v6 |
+| Gráficos | Canvas API nativa (mapa estelar) |
+| Ícones | Lucide React |
+| Geocoding | Nominatim / OpenStreetMap (sem API key) |
+| Deploy | GitHub Pages (`gh-pages`) |
+| Hospedagem backend | Azure VM + Nginx + DuckDNS |
 
 ---
 
-## 🛠️ Stack tecnológico
-
-### Frontend
-- React 19 + Vite 8
-- Tailwind CSS v3
-- React Router DOM
-- Lucide React
-
-### Backend (disciplina de Edge Computing)
-- Python 3.x + Flask API
-- Nginx + Let's Encrypt + DuckDNS
-- FIWARE Orion Context Broker
-- IoT Agent MQTT + STH Comet
-- Docker Compose
-- VM Azure Ubuntu 22.04
-
-### Edge Computing
-- ESP32 (simulado no Wokwi)
-- Sensores: LDR/BH1750, DHT22, BMP180, OLED SSD1306
-- Protocolo MQTT (Eclipse Mosquitto)
-
-### APIs e fontes de dados
-- [N2YO API](https://www.n2yo.com/api/) — posições orbitais em tempo real
-- [Open-Meteo](https://open-meteo.com/) — cobertura de nuvens
-- [VIIRS/NASA](https://www.nasa.gov/mission_pages/NPP/main/index.html) — poluição luminosa (BORTLE_MAP)
-- [Space-Track.org](https://www.space-track.org/) — dados complementares
-
-### Tipografia
-- Cormorant Garamond (títulos)
-- Inter (corpo)
-- Space Mono (dados e código)
-
----
-
-## 📁 Estrutura do projeto
+## Estrutura do Repositório
 
 ```
 skyaware/
@@ -156,36 +222,56 @@ skyaware/
 │   └── 404.html
 ├── src/
 │   ├── components/
-│   │   ├── Navbar.jsx
-│   │   ├── Footer.jsx
-│   │   ├── StarfieldCanvas.jsx
-│   │   └── SeletorPerfil.jsx
+│   │   ├── LocalizacaoModal.jsx   ← GPS + busca manual de cidade
+│   │   ├── Navbar.jsx             ← navegação + badge de status
+│   │   ├── SeletorPerfil.jsx      ← seletor amador/fotógrafo/profissional
+│   │   ├── StarfieldCanvas.jsx    ← background de estrelas animado
+│   │   └── Footer.jsx
 │   ├── data/
-│   │   └── satellites.json
+│   │   └── satellites.json        ← fallback estático quando API offline
 │   ├── pages/
-│   │   ├── Home.jsx
-│   │   ├── Problema.jsx
+│   │   ├── Home.jsx               ← score ao vivo + forecast bar
+│   │   ├── MapaCeu.jsx            ← mapa estelar canvas + bússola + filtros
+│   │   ├── Alertas.jsx            ← alertas dinâmicos + previsão semanal
 │   │   ├── ComoFunciona.jsx
-│   │   ├── MapaCeu.jsx
-│   │   ├── Alertas.jsx
 │   │   ├── Impacto.jsx
+│   │   ├── Problema.jsx
 │   │   ├── Sobre.jsx
 │   │   └── PaginaErro.jsx
 │   ├── services/
-│   │   └── api.js
+│   │   └── api.js                 ← fetchScore / fetchForecast / fetchHistory
 │   ├── styles/
 │   │   └── global.css
-│   ├── App.jsx
+│   ├── App.jsx                    ← roteamento + estado global
 │   └── main.jsx
 ├── index.html
 ├── vite.config.js
 ├── tailwind.config.js
-├── package.json
-└── README.md
+└── package.json
 ```
 
 ---
 
-## 📄 Licença
+## Como Rodar Localmente
 
-Projeto acadêmico desenvolvido para a Global Solution 2026 — FIAP.
+```bash
+# Clone o repositório
+git clone https://github.com/lucx-yan/skyaware.git
+cd skyaware
+
+# Instale as dependências
+npm install
+
+# Rode em modo desenvolvimento
+npm run dev
+```
+
+O frontend funciona completamente offline com os dados estáticos de fallback em `src/data/satellites.json`. Para dados ao vivo, a VM Azure do backend precisa estar ativa.
+
+---
+
+> **Nota sobre avaliação:** o site é hospedado estaticamente no GitHub Pages e **está sempre disponível**, independente do estado da VM. Quando o backend estiver offline, o site exibe os dados de fallback com o badge **DADOS SIMULADOS** — comportamento intencional e documentado.
+
+---
+
+*FIAP · Engenharia de Software · 1ESPA · Global Solution 2026 · Guardiões da Galáxia*
