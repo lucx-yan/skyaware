@@ -407,10 +407,10 @@ function MapaCanvas({filtro, satellites}) {
     )
 }
 
-export default function MapaCeu({perfil}) {
+export default function MapaCeu({perfil, localizacao}) {
     return (
         <div className="relative z-10" style={{minHeight: "100vh"}}>
-            <LayoutMapa perfil={perfil} />
+            <LayoutMapa perfil={perfil} localizacao={localizacao} />
         </div>
     )
 }
@@ -722,12 +722,13 @@ const FILTRO_LABELS = {
     perigo:  "Satélites Chegando",
 }
 
-function LayoutMapa({perfil}) {
+function LayoutMapa({perfil, localizacao}) {
     const [filtro, setFiltro] = useState("todos")
     const [expSeg, setExpSeg] = useState(30)
     const [azimuth, setAzimuth] = useState(180)
     const [apiData, setApiData] = useState(null)
     const {meta, satellites, scoreFactors} = apiData || staticData
+    const cidadeExibida = localizacao?.city ?? meta.location
 
     const sensores = apiData?.sensores || SENSORES_MOCK
     const apis = apiData ? {
@@ -749,7 +750,7 @@ function LayoutMapa({perfil}) {
         buscar()
         const intervalo = setInterval(buscar, 60 * 1000)
         return () => clearInterval(intervalo)
-    }, [])
+    }, [localizacao])
 
     // Cálculo
     const B = (scoreFactors.orbital.value * scoreFactors.orbital.weight) + (scoreFactors.local.value * scoreFactors.local.weight)
@@ -793,7 +794,7 @@ function LayoutMapa({perfil}) {
                             </p>
                             <p className='flex items-center gap-1' style={{fontFamily: "var(--font-mono)", fontSize: "0.75rem", color: "var(--c-muted)", letterSpacing: "0.04em", marginTop: "3px"}}>
                                 <MapPin size={14}/>
-                                {meta.location} · {meta.latitude}°S {Math.abs(meta.longitude)}°W · agora
+                                {cidadeExibida} · {meta.latitude}°S {Math.abs(meta.longitude)}°W · agora
                             </p>
                         </div>
                         <div className='flex items-center gap-2'>
@@ -852,7 +853,7 @@ function LayoutMapa({perfil}) {
                             Mapa Estelar ao Vivo
                         </p>
                         <p style={{fontFamily: "var(--font-mono)", fontSize: "0.65rem", color: "var(--c-muted)"}}>
-                            {meta.location} · agora
+                            {cidadeExibida} · agora
                         </p>
                     </div>
                     <div className='flex gap-1 flex-wrap justify-end'>
